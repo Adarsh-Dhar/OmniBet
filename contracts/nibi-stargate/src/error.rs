@@ -8,6 +8,12 @@ pub enum ContractError {
 
     #[error("Unauthorized")]
     Unauthorized {},
-    // Add any other custom errors you like here.
-    // Look at https://docs.rs/thiserror/1.0.21/thiserror/ for details.
+
+    // 09 Execute 1
+    // - #[error("Custom Error val: {val:?}")]
+    // - CustomError { val: String },
+    // + #[error("Too many poll options")]
+    // + TooManyOptions {},
+    #[error("Too many poll options")]
+    TooManyOptions {},
 }
