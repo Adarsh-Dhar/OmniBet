@@ -1,44 +1,48 @@
+use cosmwasm_std::{Addr, Uint128, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Addr;
+use pyth_sdk_cw::{Price, PriceIdentifier};
 use cw_storage_plus::{Item, Map};
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq,JsonSchema)]
+pub struct Bet {
+    pub id: Uint128,
+    pub state: BetState,
+    pub price_key: String,
+    pub expiry: Timestamp,
+}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Config {
-    pub owner: Addr,
+pub struct Predictions {
+    pub predictions : Map<Addr, String>
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq,JsonSchema)]
+pub struct BetState {
+    pub created: bool,
+    pub started: bool, 
+    pub player_won : Addr,
+    pub draw : bool
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq,JsonSchema)]
+pub struct BetPrediction {
+    pub player: Addr,
+    pub price : Price,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Pool {
-    pub id: u64,
-    pub creator: Addr,
-    pub token: Addr,
-    pub liquidity: i128,
+pub struct Oracle {
+    // Available price feeds and their ids are listed in pyth-sdk-cw Readme.
+    pub price_feed_id:  PriceIdentifier,
+    // Contract address of Pyth in different networks are listed in pyth-sdk-cw Readme.
+    pub pyth_contract_addr: Addr,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Market {
-    pub id: u64,
-    pub question: String,
-    pub end_time: u64,
-    pub yes_votes: i128,
-    pub no_votes: i128,
-    pub resolved: bool,
-    pub outcome: Option<bool>,
-}
+pub const ORACLE: Item<Oracle> = Item::new("oracle");
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Vote {
-    pub user: Addr,
-    pub amount: i128,
-    pub prediction: bool,
-}
+pub const BET: Item<Bet> = Item::new("bet");
+pub const BET_STATE : Item<BetState> = Item::new("bet_state");
+pub const BET_PREDICTION : Item<BetPrediction> = Item::new("bet_prediction");
 
-pub const CONFIG: Item<Config> = Item::new("config");
-pub const POOLS: Map<u64, Pool> = Map::new("pools");
-pub const MARKETS: Map<u64, Market> = Map::new("markets");
-pub const VOTES: Map<(u64, Addr), Vote> = Map::new("votes");
-pub const POOL_COUNT: Item<u64> = Item::new("pool_count");
-pub const MARKET_COUNT: Item<u64> = Item::new("market_count");
+
+

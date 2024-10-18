@@ -1,30 +1,50 @@
-use serde::{Deserialize, Serialize};
-use cosmwasm_std::Addr;
+
+use cosmwasm_std::{Addr, Timestamp, Binary, Uint128};
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use schemars::JsonSchema;
+use pyth_sdk_cw::{Price,PriceIdentifier};
 
+#[cw_serde]
+pub struct MigrateMsg {}
 
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cw_serde]
 pub struct InstantiateMsg {
-    pub owner: Option<String>,
-    pub min_bet_amount: i128,
+    pub price_feed_id: PriceIdentifier,
+    pub pyth_contract_addr: String,
 }
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    CreatePool { token: Addr },
-    AddLiquidity { pool_id: u64, amount: i128 },
-    CreateMarket { question: String, end_time: u64 },
-    PlaceVote { market_id: u64, prediction: bool, amount: i128 },
-    ResolveMarket { market_id: u64, outcome: bool },
+    CreateBet {
+        amount : Uint128,
+        price : Price,
+        price_key : Addr
+    },
+    EnterBet {
+        amount : Uint128,
+        expiry : Timestamp
+    },
+    ClaimBet {
+        palyer : Addr
+    },
+    CloseBet {
+        player : Addr
+    }
 }
 
 #[cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
-    GetConfig {},
-    GetPool { id: u64 },
-    GetMarket { id: u64 },
-    GetVote { market_id: u64, user: Addr },
+    #[returns(FetchPriceResponse)]
+    FetchPrice {},
+    #[returns(Coin)]
+    FetchUpdateFee { vaas: Vec<Binary> },
+    #[returns(Duration)]
+    FetchValidTimePeriod,
+}
+
+#[cw_serde]
+pub struct FetchPriceResponse {
+    pub current_price: Price,
+    pub ema_price:     Price,
 }
 

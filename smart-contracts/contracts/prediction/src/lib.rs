@@ -5,4 +5,4 @@ pub mod msg;
 pub mod state;
 
 
-pub use crate::error::ContractError;
+// pub use crate::error::ContractError;

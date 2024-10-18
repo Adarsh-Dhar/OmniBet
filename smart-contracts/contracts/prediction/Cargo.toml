@@ -23,5 +23,6 @@ serde.workspace = true
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 nibiru-std = { workspace = true }
+pyth-sdk-cw = "1.2.0"
 
 [dev-dependencies]
