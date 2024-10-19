@@ -1,4 +1,5 @@
 use std::time::Duration;
+use cosmwasm_std::{Addr, Uint128, Timestamp};
 
 use cosmwasm_std::{Binary, Coin};
 use pyth_sdk_cw::{
@@ -21,7 +22,23 @@ pub struct InstantiateMsg {
 }
 
 #[cw_serde]
-pub enum ExecuteMsg {}
+pub enum ExecuteMsg {
+    CreateBet {
+        amount : Uint128,
+        price : Price,
+        price_key : Addr
+    },
+    EnterBet {
+        amount : Uint128,
+        expiry : Timestamp
+    },
+    ClaimBet {
+        palyer : Addr
+    },
+    CloseBet {
+        player : Addr
+    }
+}
 
 #[cw_serde]
 #[derive(QueryResponses)]

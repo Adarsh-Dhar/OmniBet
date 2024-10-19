@@ -12,10 +12,13 @@ use {
         state::{
             State,
             STATE,
+            BET,
+            BET_PREDICTION,
+            BetStatus
         },
     },
     cosmwasm_std::{
-        to_binary,
+        to_json_binary,
         Binary,
         Coin,
         Deps,
@@ -25,12 +28,15 @@ use {
         Response,
         StdError,
         StdResult,
+        Uint128,
+        Timestamp
     },
     pyth_sdk_cw::{
         get_update_fee,
         get_valid_time_period,
         query_price_feed,
         PriceFeedResponse,
+        Price
     },
     std::time::Duration,
 };
@@ -73,13 +79,120 @@ pub fn execute(
     Ok(Response::new().add_attribute("method", "execute"))
 }
 
+pub fn execute_create_bet(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    _msg: ExecuteMsg,
+    amount : Uint128,
+    asset_name : String,
+    id : Uint128,
+    expiry : u64,
+) -> StdResult<Response> {
+    let creator = info.sender;
+    let mut bet = BET.load(deps.storage)?;
+
+    if bet.creator != creator {
+        return Err(StdError::generic_err("You are not the creator of this bet"));
+    }
+
+    if bet.state != BetStatus::not_created {
+        return Err(StdError::generic_err("Bet already created"));
+    }
+
+    bet.amount = amount;
+    bet.asset_name = asset_name;
+    
+
+    let current_time = env.block.time;
+    let expiry_time = current_time.plus_seconds(expiry); 
+
+    bet.expiry = expiry_time;
+
+    bet.state = BetStatus::created;
+
+
+    Ok(Response::new().add_attribute("method", "execute_create_bet"))
+}
+
+pub fn execute_enter_bet(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    _msg: ExecuteMsg,
+    id : Uint128,
+    amount : Price
+) -> StdResult<Response> {
+    let sender = info.sender;
+    
+    let mut bet = BET.load(deps.storage)?;
+    let mut bet_prediction = BET_PREDICTION.load(deps.storage)?;
+
+    if bet.state != BetStatus::created {
+        return Err(StdError::generic_err("Bet not created"));
+    }
+
+    bet_prediction.bet_id = id;
+    bet_prediction.bet = amount;
+    bet_prediction.player = sender;
+
+    BET_PREDICTION.save(deps.storage, &bet_prediction)?;
+    Ok(Response::new().add_attribute("method", "execute_enter_bet"))
+}
+
+pub fn execute_claim_bet(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    _msg: ExecuteMsg,
+    id : Uint128,
+) -> StdResult<Response> {
+    let mut bet = BET.load(deps.storage)?;
+
+    if bet.state != BetStatus::ended {
+        return Err(StdError::generic_err("Bet hasn't ended yet"));
+    }
+
+    if bet.winner != info.sender {
+        return Err(StdError::generic_err("You are not the winner"));
+    }
+
+    //transfer from escrow to winner
+
+    bet.state = BetStatus::claimed;
+
+
+
+
+
+    Ok(Response::new().add_attribute("method", "execute_claim_bet"))
+}
+
+pub fn execute_close_bet(
+    deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    _msg: ExecuteMsg,
+    id : Uint128,
+) -> StdResult<Response> {
+    let mut bet = BET.load(deps.storage)?;
+
+    if bet.state != BetStatus::claimed {
+        return Err(StdError::generic_err("Bet hasn't been claimed yet"));
+    }
+    Ok(Response::new().add_attribute("method", "execute_close_bet"))
+}
+
+
+
+
 /// Query the Pyth contract the current price of the configured price feed.
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::FetchPrice {} => to_binary(&query_fetch_price(deps, env)?),
-        QueryMsg::FetchUpdateFee { vaas } => to_binary(&query_fetch_update_fee(deps, vaas)?),
-        QueryMsg::FetchValidTimePeriod => to_binary(&query_fetch_valid_time_period(deps)?),
+        QueryMsg::FetchPrice {} => to_json_binary(&query_fetch_price(deps, env)?),
+        QueryMsg::FetchUpdateFee { vaas } => to_json_binary(&query_fetch_update_fee(deps, vaas)?),
+        QueryMsg::FetchValidTimePeriod => to_json_binary(&query_fetch_valid_time_period(deps)?),
     }
 }
 
