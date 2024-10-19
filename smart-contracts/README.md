@@ -1,41 +1,106 @@
-# NibiruChain/cw-nibiru
+# CosmWasm Starter Pack
 
-Smart contract sandbox for Nibiru Chain.
+This is a template to build smart contracts in Rust to run inside a
+[Cosmos SDK](https://github.com/cosmos/cosmos-sdk) module on all chains that enable it.
+To understand the framework better, please read the overview in the
+[cosmwasm repo](https://github.com/CosmWasm/cosmwasm/blob/master/README.md),
+and dig into the [cosmwasm docs](https://www.cosmwasm.com).
+This assumes you understand the theory and just want to get coding.
 
-```bash
-⚡ NibiruChain/cw-nibiru
-├── 📂 artifacts         # compiled .wasm smart contracts for cw-nibiru
-├── 📂 contracts         # Smart contracts for Nibiru Chain
-    └── 📂 nibi-stargate # Example contract using nibiru-std for CosmosMsg::Stargate
-    └── 📂 incentives    # Generalized incentives over time for locked tokens
-    └── 📂 lockup        # For locking and unlocking tokens like LP tokens
-    └── 📂 pricefeed     # CosmWasm prototype of the (now deprecated) x/pricefeed module.
-    └── 📂 core-cw3-flex-msig # CW3-flex-multisig with stargate enabled.
-    └── 📂 core-shifter       # Calls peg shift and depth shift in x/perp.
-    └── 📂 core-controller    # Calls other admin calls from Nibiru foundation.
-    └── 📂 core-token-vesting # Token linear vesting contracts with optional cliffs.
-    └── 📂 core-token-vesting-v2 # Improved version of core-token-vesting-v2.
-├── 📂 nibiru-std      # Nibiru Chain standard library for smart contracts
-    └── 📦 proto       # Types and traits for QueryRequest::Stargate and CosmosMsg::Stargate
-         └──           #   Includes constructors for Cosmos, IBC, and Nibiru. 
-    └── 📦 bindings    # For sending CosmosMsg::Custom msgs on Nibiru (soon deprecated).
-├── 📂 packages        # Other Rust packages
-    └── 📦 bash-rs     # Easily run bash from Rust. Used for writing testable and maintainable scripts.
-    └── 📦 nibi-dev    # Dev tooling package for Nibiru. 
-    └── 📦 nibiru-macro  # Implements procedural macros for the "nibiru-macro" package. 
-├── Cargo.toml
-├── Cargo.lock
-└── README.md
+## Creating a new repo from template
+
+Assuming you have a recent version of rust and cargo (v1.58.1+) installed
+(via [rustup](https://rustup.rs/)),
+then the following should get you a new repo to start a contract:
+
+Install [cargo-generate](https://github.com/ashleygwilliams/cargo-generate) and cargo-run-script.
+Unless you did that before, run this line now:
+
+```sh
+cargo install cargo-generate --features vendored-openssl
+cargo install cargo-run-script
 ```
 
-## Hacking
+Now, use it to create your new contract.
+Go to the folder in which you want to place it and run:
 
-Install `just` to run project-specific commands.
 
-```bash
-cargo install just
+**Latest: 1.0.0-beta6**
+
+```sh
+cargo generate --git https://github.com/CosmWasm/cw-template.git --name PROJECT_NAME
+````
+
+**Older Version**
+
+Pass version as branch flag:
+
+```sh
+cargo generate --git https://github.com/CosmWasm/cw-template.git --branch <version> --name PROJECT_NAME
+````
+
+Example:
+
+```sh
+cargo generate --git https://github.com/CosmWasm/cw-template.git --branch 0.16 --name PROJECT_NAME
 ```
 
-You can view the list of available development commands with `just -ls`.
+You will now have a new folder called `PROJECT_NAME` (I hope you changed that to something else)
+containing a simple working contract and build system that you can customize.
 
-Ref: [github.com/casey/just](https://github.com/casey/just)
+## Create a Repo
+
+After generating, you have a initialized local git repo, but no commits, and no remote.
+Go to a server (eg. github) and create a new upstream repo (called `YOUR-GIT-URL` below).
+Then run the following:
+
+```sh
+# this is needed to create a valid Cargo.lock file (see below)
+cargo check
+git branch -M main
+git add .
+git commit -m 'Initial Commit'
+git remote add origin YOUR-GIT-URL
+git push -u origin main
+```
+
+## CI Support
+
+We have template configurations for both [GitHub Actions](.github/workflows/Basic.yml)
+and [Circle CI](.circleci/config.yml) in the generated project, so you can
+get up and running with CI right away.
+
+One note is that the CI runs all `cargo` commands
+with `--locked` to ensure it uses the exact same versions as you have locally. This also means
+you must have an up-to-date `Cargo.lock` file, which is not auto-generated.
+The first time you set up the project (or after adding any dep), you should ensure the
+`Cargo.lock` file is updated, so the CI will test properly. This can be done simply by
+running `cargo check` or `cargo unit-test`.
+
+## Using your project
+
+Once you have your custom repo, you should check out [Developing](./Developing.md) to explain
+more on how to run tests and develop code. Or go through the
+[online tutorial](https://docs.cosmwasm.com/) to get a better feel
+of how to develop.
+
+[Publishing](./Publishing.md) contains useful information on how to publish your contract
+to the world, once you are ready to deploy it on a running blockchain. And
+[Importing](./Importing.md) contains information about pulling in other contracts or crates
+that have been published.
+
+Please replace this README file with information about your specific project. You can keep
+the `Developing.md` and `Publishing.md` files as useful referenced, but please set some
+proper description in the README.
+
+## Gitpod integration
+
+[Gitpod](https://www.gitpod.io/) container-based development platform will be enabled on your project by default.
+
+Workspace contains:
+ - **rust**: for builds
+ - [wasmd](https://github.com/CosmWasm/wasmd): for local node setup and client
+ - **jq**: shell JSON manipulation tool
+
+Follow [Gitpod Getting Started](https://www.gitpod.io/docs/getting-started) and launch your workspace.
+
