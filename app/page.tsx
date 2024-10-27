@@ -1,9 +1,10 @@
 import Image from "next/image";
-import LineChart from "../components/LineChart";
-import Navbar from "../components/Navbar";
+import Navbar from "@/components/Navbar";
+
+import ConnectWallet from "@/components/ConnectWallet";
 
 export default function Home() {
   return (
-      <Navbar />
+    <ConnectWallet />
   );
 }
