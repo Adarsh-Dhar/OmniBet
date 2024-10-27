@@ -18,6 +18,12 @@ const config = {
     type: 'line',
     data: data,
   };
+
+  return(
+    <div>
+        
+    </div>
+  )
 }
 
 export default PredictionGraph;

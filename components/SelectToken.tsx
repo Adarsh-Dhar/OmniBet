@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
+import { tokenAtom } from '@/state/oracle';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 
 // Array of tokens with name, short code, and logo
 const tokens = [
   { name: "Bitcoin", shortCode: "BTC", logo: "https://cryptologos.cc/logos/bitcoin-btc-logo.png" },
   { name: "Ethereum", shortCode: "ETH", logo: "https://cryptologos.cc/logos/ethereum-eth-logo.png" },
-  { name: "Tether", shortCode: "USDT", logo: "https://cryptologos.cc/logos/tether-usdt-logo.png" },
-  { name: "Dai", shortCode: "DAI", logo: "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.png" },
-  { name: "Solana", shortCode: "SOL", logo: "https://cryptologos.cc/logos/solana-sol-logo.png" },
-  { name: "Polygon", shortCode: "MATIC", logo: "https://cryptologos.cc/logos/polygon-matic-logo.png" },
+  { name: "Dai", shortCode: "USDT", logo: "https://cryptologos.cc/logos/tether-usdt-logo.png" },
+  { name: "Nibiru", shortCode: "DAI", logo: "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.png" },
+  { name: "USDC", shortCode: "SOL", logo: "https://cryptologos.cc/logos/solana-sol-logo.png" },
+  { name: "Atom", shortCode: "MATIC", logo: "https://cryptologos.cc/logos/polygon-matic-logo.png" },
 ];
 
 const SelectToken: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false); // State to toggle dropdown
-  const [selectedToken, setSelectedToken] = useState<string | null>(null); // Selected token
+  const selectedToken = useRecoilValue(tokenAtom); // Recoil state for selected token
+  const setSelectedToken = useSetRecoilState(tokenAtom); // Recoil setter for selected token
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen); // Toggle dropdown open/close

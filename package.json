@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@keplr-wallet/cosmos": "^0.12.144",
+    "@nibiruchain/nibijs": "^5.0.2",
     "chart.js": "^4.4.5",
     "next": "14.2.15",
     "react": "^18",
