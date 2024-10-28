@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import SelectToken from './SelectToken'; // Adjust this import based on your file structure
+import ChainList from './ChainList'; // Adjust this import based on your file structure
 
 const Predict: React.FC = () => {
   const [primaryToken, setPrimaryToken] = useState<string | null>(null);
@@ -20,12 +20,12 @@ const Predict: React.FC = () => {
       
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Select Primary Token</h2>
-        <SelectToken />
+        <ChainList />
       </div>
 
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Select Reference Token</h2>
-        <SelectToken />
+        <ChainList />
       </div>
 
       <button
