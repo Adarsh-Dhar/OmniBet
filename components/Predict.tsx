@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
-import ChainList from './ChainList'; // Adjust this import based on your file structure
+"use client"
 
-const Predict: React.FC = () => {
-  const [primaryToken, setPrimaryToken] = useState<string | null>(null);
-  const [referenceToken, setReferenceToken] = useState<string | null>(null);
+import React, { useState } from 'react';
+import ChainList from './ChainList';
+
+const Predict = () => {
+  const [primaryToken, setPrimaryToken] = useState(null);
+  const [referenceToken, setReferenceToken] = useState(null);
 
   const handlePredict = () => {
     if (primaryToken && referenceToken) {
-      // Handle prediction logic here (e.g., sending data to backend)
       console.log(`Predicting ${primaryToken} against ${referenceToken}`);
     } else {
       alert('Please select both a primary and a reference token.');
@@ -15,25 +16,36 @@ const Predict: React.FC = () => {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Make a Prediction</h1>
-      
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Select Primary Token</h2>
-        <ChainList />
-      </div>
+    <div className="max-w-2xl mx-auto my-10">
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200">
+          <h1 className="text-2xl font-bold text-gray-900">Make a Prediction</h1>
+        </div>
+        
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold mb-2 text-gray-800">Select Primary Token</h2>
+            <ChainList />
+          </div>
+          
+          <div>
+            <h2 className="text-lg font-semibold mb-2 text-gray-800">Select Reference Token</h2>
+            <ChainList />
+          </div>
+        </div>
 
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-2">Select Reference Token</h2>
-        <ChainList />
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-200">
+          <button
+            onClick={handlePredict}
+            className="w-full px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+          >
+            Predict
+          </button>
+        </div>
       </div>
-
-      <button
-        onClick={handlePredict}
-        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-      >
-        Predict
-      </button>
     </div>
   );
 };
