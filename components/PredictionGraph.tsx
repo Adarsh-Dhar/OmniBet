@@ -1,4 +1,5 @@
 import { LineController, LineElement, PointElement, CategoryScale, LinearScale } from "chart.js";
+import LineChart from "./LineChart";
 
 const PredictionGraph = () => {
 
@@ -15,15 +16,15 @@ const data = {
 };
 
 const config = {
-    type: 'line',
-    data: data,
-  };
+  type: 'line',
+  data: data,
+};
 
-  return(
-    <div>
-        
-    </div>
-  )
+return (
+  <div>
+    <LineChart />
+  </div>
+)
 }
 
 export default PredictionGraph;

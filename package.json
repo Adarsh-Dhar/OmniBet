@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@coinpaprika/api-nodejs-client": "^2.0.0",
     "@cosmos-kit/keplr": "^2.14.1",
     "@cosmos-kit/react": "^2.20.1",
     "@interchain-ui/react": "^1.25.6",

@@ -2,17 +2,20 @@
 
 import React, { useState } from 'react';
 import ChainList from './ChainList';
+import handler from '@/scripts/trial';
+import { useRouter } from 'next/navigation';
 
 const Predict = () => {
   const [primaryToken, setPrimaryToken] = useState(null);
   const [referenceToken, setReferenceToken] = useState(null);
+  const router = useRouter();
 
-  const handlePredict = () => {
-    if (primaryToken && referenceToken) {
+  const handlePredict = async () => {
+    
       console.log(`Predicting ${primaryToken} against ${referenceToken}`);
-    } else {
-      alert('Please select both a primary and a reference token.');
-    }
+      await handler()
+      router.push('/Prediction');
+    
   };
 
   return (

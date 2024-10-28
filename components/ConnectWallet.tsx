@@ -20,8 +20,8 @@ const WalletConnect = () => {
 
   const [error, setError] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const userAddress = useStore((state) => state.address);
-  const updateAddress = useStore((state) => state.changeAddress);
+  const userAddress = useStore((state : any) => state.address);
+  const updateAddress = useStore((state : any) => state.changeAddress);
 
 
   

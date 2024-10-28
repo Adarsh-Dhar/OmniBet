@@ -1,66 +1,52 @@
-// /scripts/oracle.js
-const { SigningArchwayClient } = require("@archwayhq/arch3.js");
-const axios = require('axios');
+// /pages/api/getHistoricalTickers.js
 
-async function fetchAndUpdatePrice(token) {
-    try {
-        // Validate the token parameter
-        if (!token || typeof token !== 'string') {
-            throw new Error('Token parameter must be a non-empty string');
-        }
+const CoinpaprikaAPI = require("@coinpaprika/api-nodejs-client");
+const {usePriceStore} = require("../states/state")
 
-        // Fetch the price from CoinGecko
-        const res = await axios.get(
-            `https://api.coingecko.com/api/v3/simple/price?ids=${token}&vs_currencies=usd`,
-            {
-                headers: {
-                    accept: 'application/json',
-                    'x-cg-api-key': 'CG-Ko72T3vZvSHxDtrs4TNakp3x' // Replace with your actual API key
-                }
-            }
-        );
+ const prices = usePriceStore((state) => state.prices);
+ const dates = usePriceStore((state) => state.dates);
+ const addPrice = usePriceStore((state ) => state.addPrice);
+ const addDates = usePriceStore((state ) => state.addDates);
+const client = new CoinpaprikaAPI();
 
-        // Check if the token price was returned
-        if (!res.data[token]) {
-            throw new Error(`Price not found for token: ${token}`);
-        }
+async function handler() {
+  try {
+    const start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-        const price = res.data[token].usd;
-        console.log(`Fetched ${token} price: $${price}`);
+    const historicalTickers = await client.getAllTickers({
+      coinId: "btc-bitcoin",
+      historical: {
+        start: start.toISOString().slice(0, 10),
+        interval: "1d",
+      },
+    });
 
-        // Connect to the Archway RPC endpoint
-        const rpcEndpoint = "https://rpc.constantine.archway.io";
-        const client = await SigningArchwayClient.connect(rpcEndpoint);
-
-        // Prepare the message to update the price in the contract
-        const msg = {
-            update_price: {
-                token: token,
-                price: Math.round(price * 1_000_000).toString() // Convert price to an appropriate format
-            }
-        };
-
-        console.log('Executing contract with message:', msg);
-
-        // Send the message to your contract (this part will require your contract's address and the user's wallet)
-        // For example:
-        // const contractAddress = "<your_contract_address>"; // Replace with your contract address
-        // const walletAddress = "<user_wallet_address>"; // Replace with the user's wallet address
-        // const response = await client.execute(walletAddress, contractAddress, msg);
-        // console.log('Contract executed with response:', response);
-
-        return msg; // Return the prepared message (or the response if you execute the contract)
-    } catch (error) {
-        console.error('Detailed error:', {
-            message: error.message,
-            stack: error.stack,
-            response: error.response?.data
-        });
-        throw error;
+    if (historicalTickers.error) {
+      throw new Error(historicalTickers.error);
     }
+
+    const formattedData = historicalTickers.map((ticker ) => ({
+      timestamp: ticker.timestamp,
+      price: ticker.price,
+      marketcap: ticker.market_cap,
+      volume24h: ticker.volume_24h,
+    }));
+
+    // Push each price to PRICE_LIST
+    addPrice(formattedData.map((data ) => data.price));
+    addDates(formattedData.map((data ) => data.timestamp));
+    console.log("Prices:", prices);
+    console.log("Dates:", dates);
+
+    console.log("Formatted Data:", formattedData);
+    
+
+    return formattedData;
+  } catch (error) {
+    console.error("Error fetching historical tickers:", error);
+  }
 }
 
+handler()
 
 
-
-module.exports = { fetchAndUpdatePrice };

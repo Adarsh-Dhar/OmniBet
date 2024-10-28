@@ -1,9 +1,45 @@
 "use client";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Chart, ChartData, ChartOptions } from "chart.js/auto";
+import { usePriceStore } from "@/states/state";
+
 
 const LineChart: React.FC = () => {
   const chartRef = useRef<HTMLCanvasElement | null>(null);
+  const [chartData, setChartData] = useState<ChartData<'line'>>({
+    labels: [],
+    datasets: [
+      {
+        label: 'My First Dataset',
+        data: [],
+        fill: false,
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.1,
+      },
+    ],
+  });
+
+  useEffect(() => {
+    const fetchAndUpdateData = async () => {
+
+      const prices = usePriceStore((state) => state.prices);
+      const dates = usePriceStore((state) => state.dates);
+      setChartData({
+        labels: dates,
+        datasets: [
+          {
+            label: 'My First Dataset',
+            data: prices,
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1,
+          },
+        ],
+      });
+    };
+
+    fetchAndUpdateData();
+  }, []);
 
   useEffect(() => {
     if (chartRef.current) {
@@ -15,41 +51,22 @@ const LineChart: React.FC = () => {
       const context = chartRef.current.getContext("2d");
       if (!context) return; // Ensure context is not null
 
-      // Define the chart data and options
-      const data: ChartData<'line'> = {
-        labels: [15, 37, 43, 47, 57, 76, 113],
-        datasets: [
-          {
-            label: "Info",
-            data: [34, 64, 23, 45, 67, 24, 64],
-            backgroundColor: "rgba(255, 99, 132, 0.2)",
-            borderColor: "rgb(255, 99, 132)",
-            borderWidth: 1,
-          },
-        ],
-      };
-
-      const options: ChartOptions<'line'> = {
-        scales: {
-          x: {
-            type: "linear",
-          },
-          y: {
-            beginAtZero: true,
-          },
-        },
-      };
-
       const newChart = new Chart(context, {
         type: "line",
-        data,
-        options,
+        data: chartData,
+        options: {
+          scales: {
+            x: {
+              type: "linear",
+            },
+          },
+        },
       });
 
       // Attach the chart instance to the ref for cleanup on unmount
       (chartRef.current as any).chart = newChart;
     }
-  }, []);
+  }, [chartData]);
 
   return (
     <div style={{ position: "relative", width: "90vw", height: "80vh" }}>

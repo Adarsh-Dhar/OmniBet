@@ -90,8 +90,8 @@ const ChainList = () => {
     token.chainId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const updateToken = useStore((token) => token.changeToken)
-  const tokenSelected = useStore((token) => token.tokenSelected)
+  const updateToken = useStore((token : any) => token.changeToken)
+  const tokenSelected = useStore((token : any) => token.tokenSelected)
   
 
 
