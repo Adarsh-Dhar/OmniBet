@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react';
 import ChainList from './ChainList';
-import handler from '@/scripts/trial';
+import handler from '@/scripts/oracle';
 import { useRouter } from 'next/navigation';
+import {CoinpaprikaAPI} from "@coinpaprika/api-nodejs-client"
+const client = new CoinpaprikaAPI();
 
 const Predict = () => {
   const [primaryToken, setPrimaryToken] = useState(null);
@@ -13,10 +15,38 @@ const Predict = () => {
   const handlePredict = async () => {
     
       console.log(`Predicting ${primaryToken} against ${referenceToken}`);
-      await handler()
+      
       router.push('/Prediction');
     
   };
+
+  const getPrices = async (token : string) => {
+    try {
+      const start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const historicalTickers = await client.getAllTickers({
+        coinId: token,
+        historical: {
+          start: start.toISOString().slice(0, 10),
+          interval: "1d",
+        },
+      });
+      if (historicalTickers.error) {
+        throw new Error(historicalTickers.error);
+      }
+  
+      const formattedData = historicalTickers.map((ticker : any) => ({
+        timestamp: ticker.timestamp.slice(0, 10),
+        price: ticker.price,
+        marketcap: ticker.market_cap,
+        volume24h: ticker.volume_24h,
+      }));
+  
+      console.log(formattedData)
+    }catch (error) {
+      console.error("Error fetching historical tickers:", error);
+      
+    }
+  }
 
   return (
     <div className="max-w-2xl mx-auto my-10">
@@ -33,10 +63,7 @@ const Predict = () => {
             <ChainList />
           </div>
           
-          <div>
-            <h2 className="text-lg font-semibold mb-2 text-gray-800">Select Reference Token</h2>
-            <ChainList />
-          </div>
+         
         </div>
 
         {/* Footer */}

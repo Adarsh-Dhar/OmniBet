@@ -15,6 +15,7 @@
     "@interchain-ui/react": "^1.25.6",
     "@keplr-wallet/cosmos": "^0.12.144",
     "@nibiruchain/nibijs": "^5.0.2",
+    "@testing-library/react-hooks": "^8.0.1",
     "chain-registry": "^1.69.12",
     "chart.js": "^4.4.5",
     "cosmos-kit": "^2.21.1",

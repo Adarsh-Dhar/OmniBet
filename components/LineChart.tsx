@@ -1,10 +1,12 @@
 "use client";
 import { useRef, useEffect, useState } from "react";
 import { Chart, ChartData, ChartOptions } from "chart.js/auto";
-import { usePriceStore } from "@/states/state";
+
 
 
 const LineChart: React.FC = () => {
+
+     
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const [chartData, setChartData] = useState<ChartData<'line'>>({
     labels: [],
@@ -22,14 +24,13 @@ const LineChart: React.FC = () => {
   useEffect(() => {
     const fetchAndUpdateData = async () => {
 
-      const prices = usePriceStore((state) => state.prices);
-      const dates = usePriceStore((state) => state.dates);
+      
       setChartData({
-        labels: dates,
+        labels: ["1", "2", "3", "4", "5", "6", "7"],
         datasets: [
           {
             label: 'My First Dataset',
-            data: prices,
+            data: [65, 59, 80, 81, 56, 55, 40],
             fill: false,
             borderColor: 'rgb(75, 192, 192)',
             tension: 0.1,
