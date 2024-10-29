@@ -1,9 +1,16 @@
 const express = require("express");
+const cors = require("cors");
+
+
 const CoinpaprikaAPI = require("@coinpaprika/api-nodejs-client");
 const client = new CoinpaprikaAPI();
 import { Router, Request, Response } from "express";
 
 const app = express();
+
+
+app.use(cors());
+app.use(express.json());
 
 const getHistoricalTickers = async (token: any) => {
   const start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);

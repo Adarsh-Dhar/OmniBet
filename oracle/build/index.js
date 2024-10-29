@@ -10,14 +10,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
+const cors = require("cors");
 const CoinpaprikaAPI = require("@coinpaprika/api-nodejs-client");
 const client = new CoinpaprikaAPI();
 const app = express();
-const getHistoricalTickers = () => __awaiter(void 0, void 0, void 0, function* () {
+app.use(cors());
+app.use(express.json());
+const getHistoricalTickers = (token) => __awaiter(void 0, void 0, void 0, function* () {
     const start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     try {
         const historicalTickers = yield client.getAllTickers({
-            coinId: "btc-bitcoin",
+            coinId: token,
             historical: {
                 start: start.toISOString().slice(0, 10),
                 interval: "1d",
@@ -40,7 +43,8 @@ const getHistoricalTickers = () => __awaiter(void 0, void 0, void 0, function* (
 });
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const data = yield getHistoricalTickers();
+        const token = req.query.token;
+        const data = yield getHistoricalTickers(token);
         res.json(data);
     }
     catch (error) {

@@ -1,52 +1,54 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ChainList from './ChainList';
 import handler from '@/scripts/oracle';
 import { useRouter } from 'next/navigation';
-import {CoinpaprikaAPI} from "@coinpaprika/api-nodejs-client"
-const client = new CoinpaprikaAPI();
+import { useStore } from '@/states/state';
+import axios from 'axios';
 
 const Predict = () => {
   const [primaryToken, setPrimaryToken] = useState(null);
   const [referenceToken, setReferenceToken] = useState(null);
   const router = useRouter();
+  const tokenIdMap = {
+    "archway": "arch-archway",
+    "nibiru": "nibi-nibiru",
+    "coreum": "cor-coreum",
+    "injective-protocol": "inj-injective-protocol",
+    "neutron": "ntrn-neutron",
+    "stargaze": "stars-stargaze",
+    // Add more token-tokenId mappings here
+  };
+  const tokenSelected = useStore((token : any) => token.tokenSelected)
+  console.log("selected token", tokenSelected)
+
+  const tokenId = tokenIdMap[tokenSelected as keyof typeof tokenIdMap]
+
+  console.log("token id", tokenId)
 
   const handlePredict = async () => {
     
       console.log(`Predicting ${primaryToken} against ${referenceToken}`);
-      
-      router.push('/Prediction');
-    
-  };
 
-  const getPrices = async (token : string) => {
-    try {
-      const start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const historicalTickers = await client.getAllTickers({
-        coinId: token,
-        historical: {
-          start: start.toISOString().slice(0, 10),
-          interval: "1d",
-        },
-      });
-      if (historicalTickers.error) {
-        throw new Error(historicalTickers.error);
-      }
-  
-      const formattedData = historicalTickers.map((ticker : any) => ({
-        timestamp: ticker.timestamp.slice(0, 10),
-        price: ticker.price,
-        marketcap: ticker.market_cap,
-        volume24h: ticker.volume_24h,
-      }));
-  
-      console.log(formattedData)
-    }catch (error) {
-      console.error("Error fetching historical tickers:", error);
       
-    }
-  }
+          const response = await axios.get(`http://localhost:5000/`, {
+            params: {
+              token: tokenId
+            }
+          });
+          console.log(response.data);
+      router.push('/Prediction');
+
+        };
+        
+      
+
+    
+  
+
+  
+  
 
   return (
     <div className="max-w-2xl mx-auto my-10">

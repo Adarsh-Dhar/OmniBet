@@ -99,7 +99,10 @@ const ChainList = () => {
 
              <div className="relative w-64" ref={dropdownRef}>
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          setOpen(!open)
+          console.log("slected token from list", tokenSelected)
+        }}
         className="w-full flex items-center justify-between px-4 py-2 text-sm bg-white border rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         {value ? (
