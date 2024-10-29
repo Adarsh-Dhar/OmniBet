@@ -26,10 +26,8 @@ const getHistoricalTickers = async (token: any) => {
     if (historicalTickers.error) throw new Error(historicalTickers.error);
 
     return historicalTickers.map((ticker : any) => ({
-      timestamp: ticker.timestamp,
+      timestamp: ticker.timestamp.slice(0, 10),
       price: ticker.price,
-      marketcap: ticker.market_cap,
-      volume24h: ticker.volume_24h,
     }));
     console.log(historicalTickers)
   } catch (error) {

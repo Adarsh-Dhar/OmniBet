@@ -22,6 +22,10 @@ const Predict = () => {
   };
   const tokenSelected = useStore((token : any) => token.tokenSelected)
   console.log("selected token", tokenSelected)
+  const pricesArray = useStore((state : any) => state.prices)
+  const timestampsArray = useStore((state : any) => state.timestamps)
+  const updatePricesArray = useStore((state : any) => state.changePrices)
+  const updateTimestampsArray = useStore((state : any) => state.changeTimestamps)
 
   const tokenId = tokenIdMap[tokenSelected as keyof typeof tokenIdMap]
 
@@ -37,7 +41,14 @@ const Predict = () => {
               token: tokenId
             }
           });
-          console.log(response.data);
+          const timestamps = response.data.map((item : any)=> item.timestamp);
+          const prices = response.data.map((item : any) => item.price);
+          console.log("prices", prices)
+          console.log("timestamps", timestamps)
+          updatePricesArray(prices);
+          updateTimestampsArray(timestamps);
+          console.log("prices array", pricesArray)
+          console.log("timestamps array", timestampsArray)
       router.push('/Prediction');
 
         };

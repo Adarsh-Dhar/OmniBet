@@ -29,10 +29,8 @@ const getHistoricalTickers = (token) => __awaiter(void 0, void 0, void 0, functi
         if (historicalTickers.error)
             throw new Error(historicalTickers.error);
         return historicalTickers.map((ticker) => ({
-            timestamp: ticker.timestamp,
+            timestamp: ticker.timestamp.slice(0, 10),
             price: ticker.price,
-            marketcap: ticker.market_cap,
-            volume24h: ticker.volume_24h,
         }));
         console.log(historicalTickers);
     }

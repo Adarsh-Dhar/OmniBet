@@ -1,22 +1,24 @@
 "use client";
 import { useRef, useEffect, useState } from "react";
 import { Chart, ChartData, ChartOptions } from "chart.js/auto";
+import {useStore} from '../states/state';
 
 
 
 const LineChart: React.FC = () => {
-
+  const pricesArray = useStore((state : any) => state.prices)
+  const timestampsArray = useStore((state : any) => state.timestamps)
      
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const [chartData, setChartData] = useState<ChartData<'line'>>({
     labels: [],
     datasets: [
       {
-        label: 'My First Dataset',
+        label: 'OmniBet',
         data: [],
         fill: false,
         borderColor: 'rgb(75, 192, 192)',
-        tension: 0.1,
+        
       },
     ],
   });
@@ -26,14 +28,14 @@ const LineChart: React.FC = () => {
 
       
       setChartData({
-        labels: ["1", "2", "3", "4", "5", "6", "7"],
+        labels: timestampsArray,
         datasets: [
           {
-            label: 'My First Dataset',
-            data: [65, 59, 80, 81, 56, 55, 40],
+            label: 'Bet',
+            data: pricesArray,
             fill: false,
             borderColor: 'rgb(75, 192, 192)',
-            tension: 0.1,
+            // tension: 0.1,
           },
         ],
       });
@@ -56,11 +58,11 @@ const LineChart: React.FC = () => {
         type: "line",
         data: chartData,
         options: {
-          scales: {
-            x: {
-              type: "linear",
-            },
-          },
+          // scales: {
+          //   x: {
+          //     type: "linear",
+          //   },
+          // },
         },
       });
 
