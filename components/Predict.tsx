@@ -14,10 +14,10 @@ const Predict = () => {
   const tokenIdMap = {
     "archway": "arch-archway",
     "nibiru": "nibi-nibiru",
-    "coreum": "cor-coreum",
+    "coreum": "core-coreum",
     "injective-protocol": "inj-injective-protocol",
     "neutron": "ntrn-neutron",
-    "stargaze": "stars-stargaze",
+    "stargaze": "stgz-stargaze",
     // Add more token-tokenId mappings here
   };
   const tokenSelected = useStore((token : any) => token.tokenSelected)

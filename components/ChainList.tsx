@@ -37,13 +37,7 @@ const ChainList = () => {
       euclid_balance: "849417981",
       icon: "📊"
     },
-    {
-      value: "neutron",
-      label: "NTRN",
-      chainId: "pion-1",
-      euclid_balance: "0",
-      icon: "⚛️"
-    },
+    
     {
       value: "nibiru",
       label: "NIBI",
@@ -51,13 +45,7 @@ const ChainList = () => {
       euclid_balance: "23950952004",
       icon: "🌌"
     },
-    {
-      value: "stargaze",
-      label: "STARS",
-      chainId: "elgafar-1",
-      euclid_balance: "93464128623",
-      icon: "⭐"
-    }
+    
   ];
 
   // Format euclid_balance to be more readable
