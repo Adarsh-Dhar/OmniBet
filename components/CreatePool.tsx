@@ -1,11 +1,13 @@
 // components/CreatePredictionPool.tsx
 "use client"
 import { useState } from 'react';
+import { useStore } from '../states/state';
 
 const CreatePredictionPool = () => {
   const [predictionDate, setPredictionDate] = useState('');
   const [entryFee, setEntryFee] = useState<number | ''>('');
   const [inviteLink, setInviteLink] = useState('');
+  const token = useStore((state : any) => state.tokenSelected)
 
   // Handle form submission
   const handleCreatePool = (e: React.FormEvent) => {
@@ -38,7 +40,20 @@ const CreatePredictionPool = () => {
         </div>
         <div>
           <label htmlFor="entryFee" className="block text-sm font-medium text-gray-700">
-            Entry Fee (optional)
+            predict the value of {token} at date {predictionDate}
+          </label>
+          <input
+            type="number"
+            id="entryFee"
+            value={entryFee}
+            onChange={(e) => setEntryFee(e.target.valueAsNumber || '')}
+            className="mt-1 p-2 border border-gray-300 rounded-md w-full"
+            placeholder="0"
+          />
+        </div>
+        <div>
+          <label htmlFor="entryFee" className="block text-sm font-medium text-gray-700">
+            bet amount
           </label>
           <input
             type="number"
