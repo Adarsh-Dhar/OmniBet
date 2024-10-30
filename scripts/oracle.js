@@ -1,16 +1,14 @@
 // /pages/api/getHistoricalTickers.js
 const CoinpaprikaAPI = require("@coinpaprika/api-nodejs-client");
-
-
 const client = new CoinpaprikaAPI();
 
-async function handler() {
+async function handler(token) {
   try {
     
 
     const start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const historicalTickers = await client.getAllTickers({
-      coinId: "btc-bitcoin",
+      coinId: token,
       historical: {
         start: start.toISOString().slice(0, 10),
         interval: "1d",

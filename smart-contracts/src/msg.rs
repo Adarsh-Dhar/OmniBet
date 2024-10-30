@@ -17,7 +17,7 @@ pub struct InstantiateMsg {}
 
 #[cw_serde]
 pub enum ExecuteMsg {
-    CreateBet {
+    CreatePool {
         amount : Uint128,
         price : Uint128,
         price_key : Addr

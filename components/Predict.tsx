@@ -49,7 +49,7 @@ const Predict = () => {
           updateTimestampsArray(timestamps);
           console.log("prices array", pricesArray)
           console.log("timestamps array", timestampsArray)
-      router.push('/Prediction');
+      router.push('/CreatePool');
 
         };
         

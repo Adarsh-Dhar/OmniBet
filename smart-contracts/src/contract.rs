@@ -39,8 +39,6 @@ pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Respons
     Ok(Response::new().add_attribute("method", "migrate"))
 }
 
-/// The instantiate function is invoked when the contract is first deployed.
-/// This function sets configuration values that are used by the query function.
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
@@ -48,10 +46,6 @@ pub fn instantiate(
     _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> StdResult<Response> {
-    // It is a good practice that your contract stores the pyth contract address and ids of the
-    // price feeds it needs upon instantiation or by an authorized approach. This will ensure
-    // that a wrong address won't be used.
-   
 
     Ok(Response::new()
         .add_attribute("method", "instantiate")
@@ -104,7 +98,7 @@ pub fn execute_create_bet(
     Ok(Response::new().add_attribute("method", "execute_create_bet"))
 }
 
-pub fn execute_enter_bet(
+pub fn execute_enter_pool(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
