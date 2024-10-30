@@ -18,20 +18,32 @@ pub struct InstantiateMsg {}
 #[cw_serde]
 pub enum ExecuteMsg {
     CreatePool {
+        owner : Addr,
+        deadline : Timestamp,
+        token : String,
         amount : Uint128,
-        price : Uint128,
-        price_key : Addr
     },
     EnterBet {
+        id : Uint128,
         amount : Uint128,
-        expiry : Timestamp
-    },
+        player : Addr,
+},
     ClaimBet {
-        palyer : Addr
-    },
-    CloseBet {
+        bet_id : Uint128,
         player : Addr
-    }
+    },
+   
+}
+
+#[cw_serde]
+pub enum QueryMsg {
+    GetAllPool {},
+    GetPoolByToken {
+        token : String
+    },
+    GetPoolByDate {
+        date : Timestamp
+    },
 }
 
 

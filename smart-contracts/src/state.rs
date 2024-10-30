@@ -23,10 +23,16 @@ pub struct Bet {
     pub id : Uint128,
     pub creator : Addr,
     pub amount: Uint128,
-    pub state : BetStatus,
+    pub bet_status : BetStatus,
     pub expiry : Timestamp,
-    pub asset_name : String,
-    pub winner : Addr,
+    pub token : String,
+    pub winner : Addr
+}
+
+
+
+pub struct Bets<'a> {
+    pub bet : Map<'a, String, Uint128>
 }
 
 pub struct Prediction<'a> {
@@ -44,5 +50,7 @@ pub enum BetStatus {
 
 pub const BET: Item<Bet> = Item::new("bet");
 pub const BET_PREDICTION: Item<BetPrediction> = Item::new("bet_prediction");
+pub const BETS: Map<&str, Bet> = Map::new("bets");
+pub const PRIZE_DISTRIBUTION: Item<Vec<Uint128>> = Item::new("prize_distribution");
 
 
