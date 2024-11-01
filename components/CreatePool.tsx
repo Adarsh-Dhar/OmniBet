@@ -2,12 +2,15 @@
 "use client"
 import { useState } from 'react';
 import { useStore } from '../states/state';
+import { useTransaction } from '../interaction/useTransaction';
 
 const CreatePredictionPool = () => {
   const [predictionDate, setPredictionDate] = useState('');
   const [entryFee, setEntryFee] = useState<number | ''>('');
   const [inviteLink, setInviteLink] = useState('');
   const token = useStore((state : any) => state.tokenSelected)
+  const owner = useStore((state : any) => state.address)
+  const { createPool } = useTransaction();
 
   // Handle form submission
   const handleCreatePool = (e: React.FormEvent) => {
@@ -17,8 +20,14 @@ const CreatePredictionPool = () => {
     const generatedLink = `https://yourapp.com/predict/${new Date().getTime()}`;
     setInviteLink(generatedLink);
 
+    // Calculate deadline in seconds
+    const currentDate = new Date();
+    const predictDate = new Date(predictionDate);
+    const deadlineSeconds = Math.floor((predictDate.getTime() - currentDate.getTime()) / 1000).toString();
+
     // TODO: Send data to the backend or store it in the app state
     console.log('Pool created:', { predictionDate, entryFee });
+    createPool(owner, deadlineSeconds, token, entryFee?.toString() || "0");
   };
 
   return (
@@ -66,7 +75,7 @@ const CreatePredictionPool = () => {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition" 
         >
           Create Pool
         </button>
