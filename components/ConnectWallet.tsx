@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react";
 import { useStore } from "../states/state";
+import { NibiruTxClient, Testnet } from "@nibiruchain/nibijs";
 
 
 interface KeplrWindow {
@@ -22,7 +23,7 @@ const WalletConnect = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const userAddress = useStore((state : any) => state.address);
   const updateAddress = useStore((state : any) => state.changeAddress);
-
+  const changeOfflineSigner = useStore((state : any) => state.changeOfflineSigner);
 
   
 
@@ -46,11 +47,13 @@ const WalletConnect = () => {
       
       await window.keplr.enable(chainId);
       const offlineSigner = window.keplr.getOfflineSigner(chainId);
+      changeOfflineSigner(offlineSigner);
       const accounts = await offlineSigner.getAccounts();
       
       if (!accounts || accounts.length === 0) {
         throw new Error("No accounts found");
       }
+
       
       updateAddress(accounts[0].address);
       console.log("user address", userAddress);
