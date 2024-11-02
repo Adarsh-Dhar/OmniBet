@@ -14,7 +14,10 @@ pub struct BetPrediction {
     pub player: Addr,
     pub bet: Uint128,
     pub bet_id : Uint128,
+    pub amount : Uint128,
 }
+
+
 
 
 
@@ -22,11 +25,10 @@ pub struct BetPrediction {
 pub struct Bet {
     pub id : Uint128,
     pub creator : Addr,
-    pub amount: Uint128,
-    pub bet_status : BetStatus,
-    pub expiry : Timestamp,
     pub token : String,
-    pub winner : Addr
+    pub date : Timestamp,
+    pub total_amount : Uint128,
+    pub deadline : Timestamp,
 }
 
 

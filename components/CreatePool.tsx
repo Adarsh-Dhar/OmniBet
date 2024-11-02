@@ -7,7 +7,6 @@ import { useTransaction } from '../interaction/useTransaction';
 const CreatePredictionPool = () => {
   const [predictionDate, setPredictionDate] = useState('');
   const [entryFee, setEntryFee] = useState<number | ''>('');
-  const [inviteLink, setInviteLink] = useState('');
   const token = useStore((state : any) => state.tokenSelected)
   const owner = useStore((state : any) => state.address)
   const { createPool } = useTransaction();
@@ -15,10 +14,6 @@ const CreatePredictionPool = () => {
   // Handle form submission
   const handleCreatePool = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Example of generating an invite link (replace with actual link creation logic)
-    const generatedLink = `https://yourapp.com/predict/${new Date().getTime()}`;
-    setInviteLink(generatedLink);
 
     // Calculate deadline in seconds
     const currentDate = new Date();
@@ -33,7 +28,7 @@ const CreatePredictionPool = () => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md max-w-lg mx-auto mt-10">
       <h2 className="text-2xl font-semibold mb-4 text-gray-800">Create a Prediction Pool</h2>
-      <form onSubmit={handleCreatePool} className="space-y-4">
+      
         <div>
           <label htmlFor="predictionDate" className="block text-sm font-medium text-gray-700">
             Prediction Deadline
@@ -75,24 +70,11 @@ const CreatePredictionPool = () => {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition" 
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"  onClick={handleCreatePool}
         >
           Create Pool
         </button>
-      </form>
-      {inviteLink && (
-        <div className="mt-4 text-center">
-          <p className="text-gray-700">Share this link with friends to invite them:</p>
-          <a
-            href={inviteLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline break-all"
-          >
-            {inviteLink}
-          </a>
-        </div>
-      )}
+      
     </div>
   );
 };
