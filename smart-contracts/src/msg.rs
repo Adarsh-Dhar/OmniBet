@@ -35,22 +35,22 @@ pub enum ExecuteMsg {
    
 }
 
-// #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-// pub struct PoolResponse {
-//     // Add the fields you want to return in your query
-//     pub total_pools: u64,
-//     // Add other fields as needed
-// }
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct PoolResponse {
+    // Add the fields you want to return in your query
+    pub total_pools: u64,
+    // Add other fields as needed
+}
 
-// #[cw_serde]
-// #[derive(QueryResponses)]
-// pub enum QueryMsg {
-//     #[returns(PoolResponse)]
-//     GetAllPool {},
-//     #[returns(PoolResponse)]
-//     GetPoolByToken { token: String },
-//     #[returns(PoolResponse)]
-//     GetPoolByDate { date: Timestamp },
-// }
+#[cw_serde]
+#[derive(QueryResponses)]
+pub enum QueryMsg {
+    #[returns(PoolResponse)]
+    GetAllPool {},
+    #[returns(PoolResponse)]
+    GetPoolByToken { token: String },
+    #[returns(PoolResponse)]
+    GetPoolByDate { date: Timestamp },
+}
 
 

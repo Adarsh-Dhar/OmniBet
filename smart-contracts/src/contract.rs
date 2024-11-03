@@ -4,7 +4,7 @@ use {
     crate::{
         msg::{
             ExecuteMsg,
-            
+            QueryMsg,
             InstantiateMsg,
             MigrateMsg,
 
@@ -89,39 +89,51 @@ pub mod execute {
         let deadline_seconds = current_time.seconds() - date.seconds();
         let deadline = Timestamp::from_seconds(deadline_seconds);
 
-        if BET.load(deps.storage)?.len() == 0 {
-            let bet = Bet {
-                id : Uint128::new(0),
-                creator : info.sender,
-                token : token,
-                date : date,
-                total_amount : Uint128::zero(),
-                deadline : deadline
+        let mut bets: Vec<_> = BET
+            .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+            .collect::<StdResult<_>>()?;
+            
+        if bets.is_empty() {
+            let mut default_bet = Bet {
+                id: Uint128::new(0),
+                creator: info.sender.clone(),
+                token: token.clone(),
+                date: date,
+                total_amount: Uint128::zero(),
+                deadline: deadline
             };
-        };
-
-        if BET.load(&deps.storage,&token,&date).is_some() {
-            return Err(StdError::generic_err("Bet already created"));
+            BET.save(deps.storage, &Uint128::new(0).to_be_bytes(), &default_bet)?;
         }
 
-        // Get latest bet ID
-        let latest_bet = BET.may_load(deps.storage)?;
-        let next_id = match latest_bet {
-            Some(bet) => bet.id + Uint128::new(1),
-            None => Uint128::new(0)
-        };
+        let existing_bet = BET
+            .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+            .find(|r| match r {
+                Ok((_, bet)) => bet.token == token && bet.date == date,
+                _ => false
+            });
+
+        if existing_bet.is_some() {
+            return Err(StdError::generic_err("Bet already exists for this token and date"));
+        }
+
+        // Get latest bet ID by counting existing bets and adding 2
+        let bets_count = BET
+            .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+            .count();
+        let next_id = Uint128::new((bets_count + 2) as u128);
 
         let bet = Bet {
             id: next_id,
-            creator: info.sender,
-            token: token,
+            creator: info.sender.clone(),
+            token: token.clone(),
             date: date,
             total_amount: Uint128::zero(),
             deadline: deadline
         };
 
-        // Save the new bet
-        BET.save(deps.storage, &bet)?;
+        // Save the new bet to both maps
+        BET.save(deps.storage, &next_id.to_be_bytes(), &bet)?;
+
 
         Ok(Response::new()
             .add_attribute("method", "execute_create_bet")
@@ -136,9 +148,17 @@ pub mod execute {
         amount: Uint128,
         bet : Uint128
     ) -> StdResult<Response> {
-       let mut bet = BET.load(deps.storage, &id)?;
+       let mut bet_struct = BET
+            .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+            .find(|r| match r {
+                Ok((_, bet)) => bet.id == id,
+                _ => false
+            })
+            .ok_or_else(|| StdError::generic_err("Bet not found"))?
+            .map_err(|e| StdError::generic_err(format!("Failed to load bet: {}", e)))?
+            .1;
 
-        bet.total_amount += amount;
+        bet_struct.total_amount += amount;
 
         let bet_prediction = BetPrediction {
             bet_id : id,
@@ -189,53 +209,82 @@ pub mod execute {
 }
 
 
-// #[cfg_attr(not(feature = "library"),)]
-// pub fn query(
-//     deps: DepsMut,
-//     env: Env,
-//     info: MessageInfo,
-//     msg: QueryMsg,
-// ) -> StdResult<Response> {
-//     match msg {
-//         QueryMsg::GetAllPool {} => query::query_get_all_pool(deps, env, info),
-//         QueryMsg::GetPoolByToken { token } => query::query_get_pool_by_token(deps, env, info, token),
-//         QueryMsg::GetPoolByDate { date } => query::query_get_pool_by_date(deps, env, info, date),
-//     };
-//     Ok(Response::new().add_attribute("method", "query"))
-// }
+#[cfg_attr(not(feature = "library"),)]
+pub fn query(
+    deps: Deps,
+    env: Env,
+    info: MessageInfo,
+    msg: QueryMsg,
+) -> StdResult<Response> {
+    match msg {
+        QueryMsg::GetAllPool {} => query::query_get_all_pool(deps, env, info),
+        QueryMsg::GetPoolByToken { token } => query::query_get_pool_by_token(deps, env, info, token),
+        QueryMsg::GetPoolByDate { date } => query::query_get_pool_by_date(deps, env, info, date),
+    };
+    Ok(Response::new().add_attribute("method", "query"))
+}
 
-// pub mod query {
-//     use super::*;
+pub mod query {
+    use super::*;
 
-//     pub fn query_get_all_pool(
-//         deps: DepsMut,
-//         _env: Env,
-//         _info: MessageInfo,
-//     ) -> StdResult<Response> {
-//         let bet = BET.load(deps.storage)?;
-//         Ok(Response::new().add_attribute("method", "query_get_all_pool"))
-//     }
+    pub fn query_get_all_pool(
+        deps: Deps,
+        _env: Env,
+        _info: MessageInfo,
+    ) -> StdResult<Response> {
+        let bets: Vec<_> = BET
+        .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+        .collect::<StdResult<Vec<_>>>()?
+        .into_iter()
+        .map(|(_, bet)| bet)
+        .collect();
+        Ok(Response::new().add_attribute("method", "query_get_all_pool"))
+    }
 
-//     pub fn query_get_pool_by_token(
-//         deps: DepsMut,
-//         _env: Env,
-//         _info: MessageInfo,
-//         token : String
-//     ) -> StdResult<Response> {
-//         let bet = BET.load(deps.storage)?;
-//         Ok(Response::new().add_attribute("method", "query_get_pool_by_token"))
-//     }
-
-//     pub fn query_get_pool_by_date(
-//         deps: DepsMut,
-//         _env: Env,
-//         _info: MessageInfo,
-//         date : Timestamp
-//     ) -> StdResult<Response> {
-//         let bet = BET.load(deps.storage)?;
-//         Ok(Response::new().add_attribute("method", "query_get_pool_by_date"))
-//     }
-// }
+    pub fn query_get_pool_by_token(
+        deps: Deps,  // Changed to Deps
+        _env: Env,
+        _info: MessageInfo,
+        token: String
+    ) -> StdResult<Response> {  // Changed return type
+        let bets: Vec<_> = BET
+            .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+            .filter_map(|item| {
+                item.ok().and_then(|(_, bet)| {
+                    if bet.token == token {
+                        Some(bet)
+                    } else {
+                        None
+                    }
+                })
+            })
+            .collect();
+        
+            Ok(Response::new().add_attribute("method", "query_get_pool_by_token"))
+    }
+    
+    pub fn query_get_pool_by_date(
+        deps: Deps,  // Changed to Deps
+        _env: Env,
+        _info: MessageInfo,
+        date: Timestamp
+    ) -> StdResult<Response> {  // Changed return type
+        let bets: Vec<_> = BET
+            .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+            .filter_map(|item| {
+                item.ok().and_then(|(_, bet)| {
+                    if bet.date == date {
+                        Some(bet)
+                    } else {
+                        None
+                    }
+                })
+            })
+            .collect();
+        
+            Ok(Response::new().add_attribute("method", "query_get_pool_by_date"))
+    }
+}
 
 // #[cfg(test)]
 // mod tests {
@@ -264,35 +313,35 @@ pub mod execute {
 //         deps
 //     }
 
-    // #[test]
-    // fn proper_initialization() {
-    //     let mut deps = setup_contract();
+//     #[test]
+//     fn proper_initialization() {
+//         let mut deps = setup_contract();
         
-    //     // Verify initial state
-    //     let bet = BET.load(&deps.storage).unwrap();
-    //     assert_eq!(bet.bet_status, BetStatus::not_created);
-    // }
+//         // Verify initial state
+//         let bet = BET.load(&deps.storage).unwrap();
+//         assert_eq!(bet.bet_status, BetStatus::not_created);
+//     }
 
-    // #[test]
-    // fn test_create_bet() {
-    //     let mut deps = setup_contract();
-    //     let env = mock_env();
-    //     let info = mock_info(CREATOR, &coins(100, DENOM));
+//     #[test]
+//     fn test_create_bet() {
+//         let mut deps = setup_contract();
+//         let env = mock_env();
+//         let info = mock_info(CREATOR, &coins(100, DENOM));
 
-    //     // Create a bet
-    //     let msg = ExecuteMsg::CreatePool {
-    //         owner: Addr::unchecked(CREATOR),
-    //         deadline: Timestamp::from_seconds(1000u64),
-    //         token: "BTC".to_string(),
-    //         amount: Uint128::new(100),
-    //     };
+//         // Create a bet
+//         let msg = ExecuteMsg::CreatePool {
+//             owner: Addr::unchecked(CREATOR),
+//             deadline: Timestamp::from_seconds(1000u64),
+//             token: "BTC".to_string(),
+//             amount: Uint128::new(100),
+//         };
 
-    //     let res = execute(
-    //         deps.as_mut(),
-    //         env.clone(),
-    //         info.clone(),
-    //         msg,
-    //     ).unwrap();
+//         let res = execute(
+//             deps.as_mut(),
+//             env.clone(),
+//             info.clone(),
+//             msg,
+//         ).unwrap();
 
     //     // Verify bet creation
     //     let bet = BET.load(&deps.storage).unwrap();

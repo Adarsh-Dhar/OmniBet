@@ -50,7 +50,9 @@ pub enum BetStatus {
 }
 
 
-pub const BET: Item<Bet> = Item::new("bet");
+// Change from Item to Map
+
+pub const BET: Map<&[u8], Bet> = Map::new("bet");
 pub const BET_PREDICTION: Item<BetPrediction> = Item::new("bet_prediction");
 pub const BETS: Map<&str, Bet> = Map::new("bets");
 pub const PRIZE_DISTRIBUTION: Item<Vec<Uint128>> = Item::new("prize_distribution");
