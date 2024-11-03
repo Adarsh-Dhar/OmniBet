@@ -209,45 +209,31 @@ pub mod execute {
 }
 
 
-#[cfg_attr(not(feature = "library"),)]
-pub fn query(
-    deps: Deps,
-    env: Env,
-    info: MessageInfo,
-    msg: QueryMsg,
-) -> StdResult<Response> {
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetAllPool {} => query::query_get_all_pool(deps, env, info),
-        QueryMsg::GetPoolByToken { token } => query::query_get_pool_by_token(deps, env, info, token),
-        QueryMsg::GetPoolByDate { date } => query::query_get_pool_by_date(deps, env, info, date),
-    };
-    Ok(Response::new().add_attribute("method", "query"))
+        QueryMsg::GetAllPool {} => to_json_binary(&query::query_get_all_pool(deps)?),
+        QueryMsg::GetPoolByToken { token } => to_json_binary(&query::query_get_pool_by_token(deps, token)?),
+        QueryMsg::GetPoolByDate { date } => to_json_binary(&query::query_get_pool_by_date(deps, date)?),
+    }
 }
 
 pub mod query {
     use super::*;
+    use crate::msg::{AllPoolsResponse, PoolsByTokenResponse, PoolsByDateResponse};
 
-    pub fn query_get_all_pool(
-        deps: Deps,
-        _env: Env,
-        _info: MessageInfo,
-    ) -> StdResult<Response> {
-        let bets: Vec<_> = BET
-        .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
-        .collect::<StdResult<Vec<_>>>()?
-        .into_iter()
-        .map(|(_, bet)| bet)
-        .collect();
-        Ok(Response::new().add_attribute("method", "query_get_all_pool"))
+    pub fn query_get_all_pool(deps: Deps) -> StdResult<AllPoolsResponse> {
+        let pools: Vec<Bet> = BET
+            .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+            .collect::<StdResult<Vec<_>>>()?
+            .into_iter()
+            .map(|(_, bet)| bet)
+            .collect();
+        Ok(AllPoolsResponse { pools })
     }
 
-    pub fn query_get_pool_by_token(
-        deps: Deps,  // Changed to Deps
-        _env: Env,
-        _info: MessageInfo,
-        token: String
-    ) -> StdResult<Response> {  // Changed return type
-        let bets: Vec<_> = BET
+    pub fn query_get_pool_by_token(deps: Deps, token: String) -> StdResult<PoolsByTokenResponse> {
+        let pools: Vec<Bet> = BET
             .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
             .filter_map(|item| {
                 item.ok().and_then(|(_, bet)| {
@@ -260,16 +246,11 @@ pub mod query {
             })
             .collect();
         
-            Ok(Response::new().add_attribute("method", "query_get_pool_by_token"))
+        Ok(PoolsByTokenResponse { pools })
     }
     
-    pub fn query_get_pool_by_date(
-        deps: Deps,  // Changed to Deps
-        _env: Env,
-        _info: MessageInfo,
-        date: Timestamp
-    ) -> StdResult<Response> {  // Changed return type
-        let bets: Vec<_> = BET
+    pub fn query_get_pool_by_date(deps: Deps, date: Timestamp) -> StdResult<PoolsByDateResponse> {
+        let pools: Vec<Bet> = BET
             .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
             .filter_map(|item| {
                 item.ok().and_then(|(_, bet)| {
@@ -282,7 +263,7 @@ pub mod query {
             })
             .collect();
         
-            Ok(Response::new().add_attribute("method", "query_get_pool_by_date"))
+        Ok(PoolsByDateResponse { pools })
     }
 }
 

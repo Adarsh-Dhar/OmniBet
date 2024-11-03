@@ -7,7 +7,7 @@ export function useTransaction() {
   const offlineSigner = useStore((state : any) => state.offlineSigner);
   const chain = Testnet(1);
   const [isLoading, setIsLoading] = useState(false)
-  const contractAddress = "nibi1ajy4v4745agfterkvmhet7atylw50ndegna8thaqv7f22e6qgafs8dnam9";
+  const contractAddress = "nibi1pfkzen0ajv6pewgndyx9xj4f0vx3pzrdcgxwe0a8jpq24ur5tm8qncad8q";
 
   const createPool = async (owner: string, date: string, token: string, amount: string) => {
     console.log("offlineSigner", offlineSigner)
@@ -16,7 +16,7 @@ export function useTransaction() {
       offlineSigner
     );
     const executeMsg = {
-      create_pool: {
+      CreatePool: {
         date: date,
         token: token,
         amount: amount
@@ -47,73 +47,66 @@ export function useTransaction() {
   };
 
   const getAllPools = async () => {
-    const client = await NibiruTxClient.connectWithSigner(
-      chain.endptTm,
-      offlineSigner
-    );
-    console.log("client", client)
-
+    const client = await NibiruQuerier.connect(chain.endptTm);
+    
     const queryMsg = {
-      get_all_pool: {}
+        get_all_pool: {}
     };
 
     try {
-      const result = await client?.wasmClient.queryContractSmart(
-        contractAddress,
-        queryMsg
-      );
-      return result;
+        const result = await client.wasmClient.queryContractSmart(
+            contractAddress,
+            queryMsg
+        );
+        console.log('Query result:', result);
+        return result;
     } catch (err) {
-      console.error('Get all pools failed:', err);
-      return null;
+        console.error('Get all pools failed:', err);
+        throw err;
     }
   };
 
   const getPoolByToken = async (token: string) => {
-    const client = await NibiruTxClient.connectWithSigner(
-      chain.endptTm,
-      offlineSigner
-    );
-
+    const client = await NibiruQuerier.connect(chain.endptTm);
+    
     const queryMsg = {
-      get_pool_by_token: {
-        token: token
-      }
+        get_pool_by_token: {
+            token: token
+        }
     };
 
     try {
-      const result = await client?.wasmClient.queryContractSmart(
-        contractAddress,
-        queryMsg
-      );
-      return result;
+        const result = await client.wasmClient.queryContractSmart(
+            contractAddress,
+            queryMsg
+        );
+        console.log('Query result:', result);
+        return result;
     } catch (err) {
-      console.error('Get pool by token failed:', err);
-      return null;
+        console.error('Get pool by token failed:', err);
+        throw err;
     }
   };
 
   const getPoolByDate = async (date: string) => {
-    const client = await NibiruTxClient.connectWithSigner(
-      chain.endptTm,
-      offlineSigner
-    );
-
+    const client = await NibiruQuerier.connect(chain.endptTm);
+    
     const queryMsg = {
-      get_pool_by_date: {
-        date: date
-      }
+        get_pool_by_date: {
+            date: date
+        }
     };
 
     try {
-      const result = await client?.wasmClient.queryContractSmart(
-        contractAddress,
-        queryMsg
-      );
-      return result;
+        const result = await client.wasmClient.queryContractSmart(
+            contractAddress,
+            queryMsg
+        );
+        console.log('Query result:', result);
+        return result;
     } catch (err) {
-      console.error('Get pool by date failed:', err);
-      return null;
+        console.error('Get pool by date failed:', err);
+        throw err;
     }
   };
 

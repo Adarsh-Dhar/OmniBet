@@ -2,55 +2,50 @@ use std::time::Duration;
 use cosmwasm_std::{Addr, Uint128, Timestamp, Binary, Coin};
 use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
+use crate::state::Bet;
 
-
-
-use cosmwasm_schema::{
-    cw_serde,
-    QueryResponses,
-};
-
-#[cw_serde]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
 
-#[cw_serde]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {}
 
-#[cw_serde]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum ExecuteMsg {
     CreatePool {
-        date : Timestamp,
-        token : String,
-        amount : Uint128,
+        date: Timestamp,
+        token: String,
+        amount: Uint128,
     },
     EnterBet {
-        id : Uint128,
-        amount : Uint128,
-        bet : Uint128,
-},
-    // ClaimBet {
-    //     bet_id : Uint128,
-    //     player : Addr
-    // },
-   
+        id: Uint128,
+        amount: Uint128,
+        bet: Uint128,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct PoolResponse {
-    // Add the fields you want to return in your query
-    pub total_pools: u64,
-    // Add other fields as needed
+#[serde(rename_all = "snake_case")]
+pub enum QueryMsg {
+    GetAllPool {},
+    GetPoolByToken { token: String },
+    GetPoolByDate { date: Timestamp },
 }
 
-#[cw_serde]
-#[derive(QueryResponses)]
-pub enum QueryMsg {
-    #[returns(PoolResponse)]
-    GetAllPool {},
-    #[returns(PoolResponse)]
-    GetPoolByToken { token: String },
-    #[returns(PoolResponse)]
-    GetPoolByDate { date: Timestamp },
+// Define specific response types for each query
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct AllPoolsResponse {
+    pub pools: Vec<Bet>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct PoolsByTokenResponse {
+    pub pools: Vec<Bet>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct PoolsByDateResponse {
+    pub pools: Vec<Bet>,
 }
 
 
