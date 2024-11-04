@@ -9,6 +9,7 @@ const GetAllPool = () => {
   useEffect(() => {
     const fetchPools = async () => {
       const result = await getAllPools();
+      console.log("result", result)
       if (result) {
         setPools(result.pools || []);
       }
@@ -26,8 +27,9 @@ const GetAllPool = () => {
             <div className="text-white">
               <p className="font-semibold">Token: {pool.token}</p>
               <p>Date: {pool.date}</p>
-              <p>Amount: {pool.amount}</p>
-              <p>Owner: {pool.owner}</p>
+              <p>Amount: {pool.total_amount}</p>
+
+              
             </div>
           </div>
         ))}

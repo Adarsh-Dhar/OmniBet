@@ -15,6 +15,7 @@ pub struct BetPrediction {
     pub bet: Uint128,
     pub bet_id : Uint128,
     pub amount : Uint128,
+    pub reward : Uint128,
 }
 
 
@@ -26,9 +27,11 @@ pub struct Bet {
     pub id : Uint128,
     pub creator : Addr,
     pub token : String,
-    pub date : Timestamp,
+    pub start_date : Uint128,
+    pub end_date : Uint128,
     pub total_amount : Uint128,
-    pub deadline : Timestamp,
+    pub deadline : Uint128,
+    pub status : BetStatus,
 }
 
 
@@ -43,7 +46,6 @@ pub struct Prediction<'a> {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum BetStatus {
-    not_created,
     created,
     ended,
     claimed,
@@ -53,7 +55,7 @@ pub enum BetStatus {
 // Change from Item to Map
 
 pub const BET: Map<&[u8], Bet> = Map::new("bet");
-pub const BET_PREDICTION: Item<BetPrediction> = Item::new("bet_prediction");
+pub const BET_PREDICTION: Map<&[u8], Bet> = Item::new("bet_prediction");
 pub const BETS: Map<&str, Bet> = Map::new("bets");
 pub const PRIZE_DISTRIBUTION: Item<Vec<Uint128>> = Item::new("prize_distribution");
 

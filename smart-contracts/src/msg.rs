@@ -13,9 +13,10 @@ pub struct InstantiateMsg {}
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum ExecuteMsg {
     CreatePool {
-        date: Timestamp,
+        date: Uint128,
         token: String,
         amount: Uint128,
+        deadline: Uint128,
     },
     EnterBet {
         id: Uint128,
@@ -29,7 +30,7 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     GetAllPool {},
     GetPoolByToken { token: String },
-    GetPoolByDate { date: Timestamp },
+    GetPoolByDate { date: Uint128 },
 }
 
 // Define specific response types for each query

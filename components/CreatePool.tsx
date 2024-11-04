@@ -16,13 +16,18 @@ const CreatePredictionPool = () => {
     e.preventDefault();
 
     // Calculate deadline in seconds
-    const currentDate = new Date();
+    const today = new Date();
+    const currentDate = new Date(today.getFullYear() + '-' + 
+                               String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(today.getDate()).padStart(2, '0') + 'T00:00:00Z');
+      console.log("current date", currentDate)                       
     const predictDate = new Date(predictionDate);
-    const deadlineSeconds = Math.floor((predictDate.getTime() - currentDate.getTime()) / 1000).toString();
+    const endDate = Math.floor((predictDate.getTime()) / 1000).toString();
+    console.log("end date", endDate)
 
     // TODO: Send data to the backend or store it in the app state
-    console.log('Pool created:', { predictionDate, entryFee });
-    createPool(owner, deadlineSeconds, token, entryFee?.toString() || "0");
+    console.log('Pool created:', { endDate, entryFee });
+    createPool(owner, endDate, token, entryFee?.toString() || "0");
   };
 
   return (
@@ -43,9 +48,7 @@ const CreatePredictionPool = () => {
           />
         </div>
         <div>
-          <label htmlFor="entryFee" className="block text-sm font-medium text-gray-700">
-            predict the value of {token} at date {predictionDate}
-          </label>
+          
           <input
             type="number"
             id="entryFee"
