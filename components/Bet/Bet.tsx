@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react';
 
 import { tokenIdMap } from '../Common/tokenMap';
-import { useBetStore } from '@/states/state';
+import { useBetStore, useStore } from '@/states/state';
+import { useTransaction } from '../../interaction/useTransaction';
 import axios from 'axios';
+
 const Bet = () => {
   const [amount, setAmount] = useState('');
   const [prediction, setPrediction] = useState('');
@@ -11,25 +13,16 @@ const Bet = () => {
   console.log("token selected in Bet", tokenSelected)
   const tokenId = tokenIdMap[tokenSelected as keyof typeof tokenIdMap]
   console.log("token id", tokenId)
+  const { enterBet } = useTransaction();
+  const userAddress = useStore((user: any) => user.address)
+  console.log("user address", userAddress)
 
   const handleBet = () => {
     // Handle betting logic here
     console.log('Betting amount:', amount);
     console.log('Prediction:', prediction);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const response = await axios.get(`http://localhost:5000/`, {
-                params: {
-                    token: tokenId
-                }
-      }
-        );
-        console.log("response", response)
-
-    }
-    fetchData();
-  },[])
+    enterBet("0", amount.toString(), prediction.toString(), userAddress);
+    
 }
 
   
@@ -37,24 +30,29 @@ const Bet = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="max-w-md mx-auto">
+
         <div className="mb-4">
-          <label htmlFor="amount" className="block text-white mb-2">Amount</label>
+          <label htmlFor="predictionDate" className="block text-sm font-medium text-gray-700">
+            Amount
+          </label>
           <textarea
             id="amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full p-2 bg-gray-700 text-white rounded"
+            className="mt-1 p-2 border border-gray-300 rounded-md w-full"
             placeholder="Enter amount..."
           />
         </div>
 
         <div className="mb-4">
-          <label htmlFor="prediction" className="block text-white mb-2">Your Prediction</label>
+        <label htmlFor="predictionDate" className="block text-sm font-medium text-gray-700">
+            Your Prediction
+          </label>
           <textarea
             id="prediction"
             value={prediction}
             onChange={(e) => setPrediction(e.target.value)}
-            className="w-full p-2 bg-gray-700 text-white rounded"
+            className="mt-1 p-2 border border-gray-300 rounded-md w-full"
             placeholder="Enter your prediction..."
           />
         </div>

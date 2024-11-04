@@ -41,7 +41,9 @@ const GetAllPool = () => {
           >
             <div className="text-white">
               <p className="font-semibold">Token: {pool.token}</p>
-              <p>Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
+              <p>End Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
+              <p>Deadline: {new Date(pool.deadline * 1000).toLocaleDateString()}</p>
+
               <p>Amount: {pool.total_amount}</p>
             </div>
           </div>

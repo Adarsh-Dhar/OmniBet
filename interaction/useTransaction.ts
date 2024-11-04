@@ -112,34 +112,44 @@ export function useTransaction() {
     }
   };
 
+  
+
   const enterBet = async (id: string, amount: string, bet: string, player: string) => {
-    const client = await NibiruTxClient.connectWithSigner(
-      chain.endptTm,
-      await offlineSigner
-    );
-    const executeMsg = {
-      enter_bet: {
-        id: id,
-        amount: amount,
-        bet: bet
-      }
-    };
     try {
+      console.log("offlineSigner", offlineSigner)
+      const client = await NibiruTxClient.connectWithSigner(
+        chain.endptTm,
+        offlineSigner
+      );
+      const executeMsg = {
+        EnterBet: {
+          id: id,
+          amount: amount,
+          bet: bet
+        }
+      };
+      console.log("client", client)
+      console.log("executeMsg", executeMsg)
+
       const fee = "auto";
       setIsLoading(true);
+      console.log("wasmClient", client?.wasmClient)
       const executeContract = await client?.wasmClient.execute(
         player,
         contractAddress,
         executeMsg,
         fee
       );
+      console.log("executeContract", executeContract)
 
       if(executeContract){
         console.log('Transaction result:', executeContract);
         setIsLoading(false);
       }
     } catch (err) {
-      console.error('Enter bet failed:', err);
+      console.error('Failed to retrieve accounts from signer:', err);
+      setIsLoading(false);
+      throw err;
     }
   };
 
@@ -178,7 +188,9 @@ export function useTransaction() {
     createPool,
     getAllPools,
     getPoolByToken,
-    getPoolByDate
+    getPoolByDate,
+    enterBet,
+    claimBet
   }
   
 }
