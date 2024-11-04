@@ -29,6 +29,7 @@ const CreatePredictionPool = () => {
 
     // TODO: Send data to the backend or store it in the app state
     console.log('Pool created:', { endDate, entryFee, deadlineTimestamp });
+    console.log("deadline in pool", deadlineTimestamp)
     createPool(owner, startDate, endDate, token, entryFee?.toString() || "0", deadlineTimestamp);
   };
 

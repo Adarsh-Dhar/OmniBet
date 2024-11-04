@@ -14,9 +14,9 @@ const GetPoolByDate = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Convert date to Unix timestamp (seconds) at 00:00:00
-    const unixTimestamp = Math.floor(new Date(`${date}T00:00:00`).getTime() / 1000);
+    const unixTimestamp = Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
     console.log("date", date);
-    console.log("unix timestamp", unixTimestamp);
+    console.log("deadline in query", unixTimestamp.toString());
     const result = await getPoolByDate(unixTimestamp.toString());
     if (result) {
       setPools(result.pools || []);

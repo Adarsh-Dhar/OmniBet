@@ -106,6 +106,9 @@ pub mod execute {
                 status : BetStatus::created
             };
             BET.save(deps.storage, &Uint128::new(0).to_be_bytes(), &default_bet)?;
+            return Ok(Response::new()
+                .add_attribute("method", "execute_create_bet")
+                .add_attribute("bet_id", default_bet.id.to_string()));
         }
 
         let existing_bet = BET
@@ -139,10 +142,9 @@ pub mod execute {
         // Save the new bet to both maps
         BET.save(deps.storage, &next_id.to_be_bytes(), &bet)?;
 
-
         Ok(Response::new()
             .add_attribute("method", "execute_create_bet")
-            .add_attribute("bet_id", next_id.to_string()))
+            .add_attribute("bet_id", bet.id.to_string()))
     }
     
     pub fn execute_enter_bet(
@@ -151,10 +153,10 @@ pub mod execute {
         info: MessageInfo,
         id: Uint128,
         current_date : Uint128,
-        amount: Uint128,
+        bet: Uint128,
         
     ) -> StdResult<Response> {
-        let bet = info.funds.iter().map(|c| c.amount).sum();
+        let amount = info.funds.iter().map(|c| c.amount).sum();
        let mut bet_struct = BET
             .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
             .find(|r| match r {
