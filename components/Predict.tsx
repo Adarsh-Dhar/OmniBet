@@ -13,12 +13,19 @@ const Predict = () => {
   const router = useRouter();
   const tokenIdMap = {
     "archway": "arch-archway",
-    "nibiru": "nibi-nibiru",
+    "nibiru": "nibi-nibiru", 
     "coreum": "core-coreum",
     "injective-protocol": "inj-injective-protocol",
-    "neutron": "ntrn-neutron",
-    "stargaze": "stgz-stargaze",
-    // Add more token-tokenId mappings here
+    "ethereum": "eth-ethereum",
+    "bitcoin": "btc-bitcoin", 
+    "solana": "sol-solana",
+    "binance": "bnb-binance",
+    "cardano": "ada-cardano",
+    "polkadot": "dot-polkadot",
+    "ripple": "xrp-ripple",
+    "dogecoin": "doge-dogecoin",
+    "avalanche": "avax-avalanche",
+    "polygon": "matic-polygon"
   };
   const tokenSelected = useStore((token : any) => token.tokenSelected)
   console.log("selected token", tokenSelected)

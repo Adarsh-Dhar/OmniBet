@@ -13,39 +13,77 @@ const ChainList = () => {
   
   
 
-  
-
   const tokens = [
+    {
+      value: "ethereum",
+      label: "ETH",
+      icon: "⟠"
+    },
+    {
+      value: "bitcoin",
+      label: "BTC",
+      icon: "₿"
+    },
+    {
+      value: "solana", 
+      label: "SOL",
+      icon: "◎"
+    },
+    {
+      value: "binance",
+      label: "BNB",
+      icon: "🟡"
+    },
+    {
+      value: "cardano",
+      label: "ADA",
+      icon: "₳"
+    },
+    {
+      value: "polkadot",
+      label: "DOT",
+      icon: "●"
+    },
+    {
+      value: "ripple",
+      label: "XRP",
+      icon: "✕"
+    },
+    {
+      value: "dogecoin",
+      label: "DOGE",
+      icon: "Ð"
+    },
+    {
+      value: "avalanche",
+      label: "AVAX",
+      icon: "🔺"
+    },
+    {
+      value: "polygon",
+      label: "MATIC",
+      icon: "⬡"
+    },
     {
       value: "archway",
       label: "ARCH",
-      chainId: "constantine-3",
-      euclid_balance: "26471502",
       icon: "🏛️"
     },
     {
       value: "coreum",
       label: "CORE",
-      chainId: "coreum-testnet-1",
-      euclid_balance: "940757",
       icon: "💫"
     },
     {
       value: "injective-protocol",
       label: "INJ",
-      chainId: "injective-888",
-      euclid_balance: "849417981",
       icon: "📊"
     },
-    
     {
       value: "nibiru",
       label: "NIBI",
-      chainId: "nibiru-testnet-1",
-      euclid_balance: "23950952004",
       icon: "🌌"
-    },
-    
+    }
   ];
 
   // Format euclid_balance to be more readable
@@ -74,8 +112,8 @@ const ChainList = () => {
 
   const filteredTokens = tokens.filter(token =>
     token.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    token.value.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    token.chainId.toLowerCase().includes(searchTerm.toLowerCase())
+    token.value.toLowerCase().includes(searchTerm.toLowerCase()) 
+
   );
 
   const updateToken = useStore((token : any) => token.changeToken)
@@ -99,9 +137,8 @@ const ChainList = () => {
               {tokens.find(token => token.value === value)?.icon}
             </span>
             <span className="font-medium">{tokens.find(token => token.value === value)?.label}</span>
-            <span className="text-gray-500 ml-2">
-              ({formateuclid_balance(tokens.find(token => token.value === value)?.euclid_balance || "0")})
-            </span>
+
+            
           </span>
         ) : (
           "Select chain..."
@@ -147,12 +184,7 @@ const ChainList = () => {
                     <span className="font-medium">{token.label}</span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-sm text-gray-500">
-                      {formateuclid_balance(token.euclid_balance)}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {token.chainId}
-                    </span>
+                    
                   </div>
                 </button>
               ))
