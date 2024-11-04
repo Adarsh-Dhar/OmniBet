@@ -21,7 +21,7 @@ pub enum ExecuteMsg {
     },
     EnterBet {
         id: Uint128,
-        amount: Uint128,
+        current_date: Uint128,
         bet: Uint128,
     },
     ClaimBet {

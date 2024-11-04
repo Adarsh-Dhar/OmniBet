@@ -66,8 +66,8 @@ pub fn execute(
 ) -> StdResult<Response> {
     match msg {
         ExecuteMsg::CreatePool {start_date,end_date,token, amount,deadline} => execute::execute_create_pool(deps, env, info,start_date, end_date, token, amount,deadline),
-        ExecuteMsg::EnterBet{ id,amount, bet} => {
-            execute::execute_enter_bet(deps, env, info, id, amount, bet)
+        ExecuteMsg::EnterBet{ id,current_date, bet} => {
+            execute::execute_enter_bet(deps, env, info, id, current_date, bet)
         },
         ExecuteMsg::ClaimBet { bet_id,current_date,real_value } => {
             execute::execute_claim_bet(deps, env, info, bet_id, current_date,real_value)

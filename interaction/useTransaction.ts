@@ -7,7 +7,7 @@ export function useTransaction() {
   const offlineSigner = useStore((state : any) => state.offlineSigner);
   const chain = Testnet(1);
   const [isLoading, setIsLoading] = useState(false)
-  const contractAddress = "nibi1rd82ft49spvzwctynknfr5tltuy25gukx7mgs0v7dxkrhfaszgrsyk3g0f";
+  const contractAddress = "nibi1rdq7el0pvhfswy4mx5yh84wyxdcd4pkfuwpnvwl4lr0asls6sgls77tge6";
 
   const createPool = async (owner: string, start_date: string, end_date: string, token: string, amount: string, deadline: string) => {
     console.log("offlineSigner", offlineSigner)
@@ -114,7 +114,7 @@ export function useTransaction() {
 
   
 
-  const enterBet = async (id: string, amount: string, bet: string, player: string) => {
+  const enterBet = async (id: string, amount: string, bet: string,current_date : string, player: string) => {
     try {
       console.log("offlineSigner", offlineSigner)
       const client = await NibiruTxClient.connectWithSigner(
@@ -124,12 +124,17 @@ export function useTransaction() {
       const executeMsg = {
         EnterBet: {
           id: id,
-          amount: amount,
+          current_date: current_date,
           bet: bet
         }
       };
       console.log("client", client)
       console.log("executeMsg", executeMsg)
+
+      const funds = [{
+        denom: "unibi",
+        amount: amount
+      }];
 
       const fee = "auto";
       setIsLoading(true);
@@ -138,7 +143,9 @@ export function useTransaction() {
         player,
         contractAddress,
         executeMsg,
-        fee
+        fee,
+        "enter_bet",
+        funds
       );
       console.log("executeContract", executeContract)
 

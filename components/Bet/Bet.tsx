@@ -19,9 +19,10 @@ const Bet = () => {
 
   const handleBet = () => {
     // Handle betting logic here
+    const currentDate = Math.floor(Date.now() / 1000).toString();
     console.log('Betting amount:', amount);
     console.log('Prediction:', prediction);
-    enterBet("0", amount.toString(), prediction.toString(), userAddress);
+    enterBet("0", amount.toString(), prediction.toString(), currentDate, userAddress);
     
 }
 
