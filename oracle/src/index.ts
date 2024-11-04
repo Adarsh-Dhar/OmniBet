@@ -36,6 +36,10 @@ const getHistoricalTickers = async (token: any) => {
   }
 };
 
+const getPriceByDate = async (token : string, date : string) => {
+  //code here
+}
+
 app.get("/", async (req : Request, res : Response) => {
   try {
     const token  = req.query.token;

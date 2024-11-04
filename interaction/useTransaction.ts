@@ -7,9 +7,9 @@ export function useTransaction() {
   const offlineSigner = useStore((state : any) => state.offlineSigner);
   const chain = Testnet(1);
   const [isLoading, setIsLoading] = useState(false)
-  const contractAddress = "nibi1pfkzen0ajv6pewgndyx9xj4f0vx3pzrdcgxwe0a8jpq24ur5tm8qncad8q";
+  const contractAddress = "nibi1rd82ft49spvzwctynknfr5tltuy25gukx7mgs0v7dxkrhfaszgrsyk3g0f";
 
-  const createPool = async (owner: string, date: string, token: string, amount: string) => {
+  const createPool = async (owner: string, start_date: string, end_date: string, token: string, amount: string, deadline: string) => {
     console.log("offlineSigner", offlineSigner)
     const client = await NibiruTxClient.connectWithSigner(
       chain.endptTm, // RPC endpoint
@@ -17,9 +17,11 @@ export function useTransaction() {
     );
     const executeMsg = {
       CreatePool: {
-        date: date,
+        start_date: start_date,
+        end_date: end_date,
         token: token,
-        amount: amount
+        amount: amount,
+        deadline: deadline
       }
       
     };
@@ -110,66 +112,67 @@ export function useTransaction() {
     }
   };
 
-  // const enterBet = async (id: string, amount: string, player: string) => {
-  //   const client = await NibiruTxClient.connectWithSigner(
-  //     chain.endptTm,
-  //     await offlineSigner
-  //   );
-  //   const executeMsg = {
-  //     enter_bet: {
-  //       id: id,
-  //       amount: amount,
-  //       player: player
-  //     }
-  //   };
-  //   try {
-  //     const fee = "auto";
-  //     setIsLoading(true);
-  //     const executeContract = await client?.wasmClient.execute(
-  //       player,
-  //       contractAddress,
-  //       executeMsg,
-  //       fee
-  //     );
+  const enterBet = async (id: string, amount: string, bet: string, player: string) => {
+    const client = await NibiruTxClient.connectWithSigner(
+      chain.endptTm,
+      await offlineSigner
+    );
+    const executeMsg = {
+      enter_bet: {
+        id: id,
+        amount: amount,
+        bet: bet
+      }
+    };
+    try {
+      const fee = "auto";
+      setIsLoading(true);
+      const executeContract = await client?.wasmClient.execute(
+        player,
+        contractAddress,
+        executeMsg,
+        fee
+      );
 
-  //     if(executeContract){
-  //       console.log('Transaction result:', executeContract);
-  //       setIsLoading(false);
-  //     }
-  //   } catch (err) {
-  //     console.error('Enter bet failed:', err);
-  //   }
-  // };
+      if(executeContract){
+        console.log('Transaction result:', executeContract);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error('Enter bet failed:', err);
+    }
+  };
 
-  // const claimBet = async (betId: string, player: string) => {
-  //   const client = await NibiruTxClient.connectWithSigner(
-  //     chain.endptTm,
-  //     offlineSigner
-  //   );
-  //   const executeMsg = {
-  //     claim_bet: {
-  //       bet_id: betId,
-  //       player: player
-  //     }
-  //   };
-  //   try {
-  //     const fee = "auto";
-  //     setIsLoading(true);
-  //     const executeContract = await client?.wasmClient.execute(
-  //       player,
-  //       contractAddress,
-  //       executeMsg,
-  //       fee
-  //     );
+  const claimBet = async (betId: string, player: string, currentDate: string, realValue: string) => {
+    const client = await NibiruTxClient.connectWithSigner(
+      chain.endptTm,
+      offlineSigner
+    );
+    const executeMsg = {
+      claim_bet: {
+        bet_id: betId,
+        current_date: currentDate,
+        real_value: realValue
+      }
+    };
+    try {
+      const fee = "auto";
+      setIsLoading(true);
+      const executeContract = await client?.wasmClient.execute(
+        player,
+        contractAddress,
+        executeMsg,
+        fee
+      );
 
-  //     if(executeContract){
-  //       console.log('Transaction result:', executeContract);
-  //       setIsLoading(false);
-  //     }
-  //   } catch (err) {
-  //     console.error('Claim bet failed:', err);
-  //   }
-  // };
+      if(executeContract){
+        console.log('Transaction result:', executeContract);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.error('Claim bet failed:', err);
+    }
+  };
 
   return {
     createPool,

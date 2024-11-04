@@ -13,7 +13,8 @@ pub struct InstantiateMsg {}
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum ExecuteMsg {
     CreatePool {
-        date: Uint128,
+        start_date: Uint128,
+        end_date: Uint128,
         token: String,
         amount: Uint128,
         deadline: Uint128,
@@ -23,6 +24,11 @@ pub enum ExecuteMsg {
         amount: Uint128,
         bet: Uint128,
     },
+    ClaimBet {
+        bet_id: Uint128,
+        current_date: Uint128,
+        real_value: Uint128,
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

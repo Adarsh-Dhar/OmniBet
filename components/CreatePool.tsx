@@ -6,6 +6,8 @@ import { useTransaction } from '../interaction/useTransaction';
 
 const CreatePredictionPool = () => {
   const [predictionDate, setPredictionDate] = useState('');
+  const [deadlineDate, setDeadlineDate] = useState('');
+
   const [entryFee, setEntryFee] = useState<number | ''>('');
   const token = useStore((state : any) => state.tokenSelected)
   const owner = useStore((state : any) => state.address)
@@ -17,17 +19,17 @@ const CreatePredictionPool = () => {
 
     // Calculate deadline in seconds
     const today = new Date();
-    const currentDate = new Date(today.getFullYear() + '-' + 
-                               String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                               String(today.getDate()).padStart(2, '0') + 'T00:00:00Z');
-      console.log("current date", currentDate)                       
+    const startDate = Math.floor((today.getTime())/ 1000).toString();
+    console.log("start date", startDate)                     
     const predictDate = new Date(predictionDate);
     const endDate = Math.floor((predictDate.getTime()) / 1000).toString();
-    console.log("end date", endDate)
+    console.log("end date", endDate);
+    const deadline = new Date(deadlineDate);
+    const deadlineTimestamp = Math.floor(deadline.getTime() / 1000).toString();
 
     // TODO: Send data to the backend or store it in the app state
-    console.log('Pool created:', { endDate, entryFee });
-    createPool(owner, endDate, token, entryFee?.toString() || "0");
+    console.log('Pool created:', { endDate, entryFee, deadlineTimestamp });
+    createPool(owner, startDate, endDate, token, entryFee?.toString() || "0", deadlineTimestamp);
   };
 
   return (
@@ -36,7 +38,7 @@ const CreatePredictionPool = () => {
       
         <div>
           <label htmlFor="predictionDate" className="block text-sm font-medium text-gray-700">
-            Prediction Deadline
+            Prediction Date
           </label>
           <input
             type="date"
@@ -59,16 +61,16 @@ const CreatePredictionPool = () => {
           />
         </div>
         <div>
-          <label htmlFor="entryFee" className="block text-sm font-medium text-gray-700">
-            bet amount
+          <label htmlFor="predictionDate" className="block text-sm font-medium text-gray-700">
+            Prediction Deadline
           </label>
           <input
-            type="number"
-            id="entryFee"
-            value={entryFee}
-            onChange={(e) => setEntryFee(e.target.valueAsNumber || '')}
+            type="date"
+            id="deadlineDate"
+            value={deadlineDate}
+            onChange={(e) => setDeadlineDate(e.target.value)}
             className="mt-1 p-2 border border-gray-300 rounded-md w-full"
-            placeholder="0"
+            required
           />
         </div>
         <button

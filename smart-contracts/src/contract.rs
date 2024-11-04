@@ -32,7 +32,8 @@ use {
         Uint128,
         Timestamp,
         Addr,
-        BankMsg
+        BankMsg,
+        Storage
     },
    
     std::time::Duration,
@@ -68,8 +69,8 @@ pub fn execute(
         ExecuteMsg::EnterBet{ id,amount, bet} => {
             execute::execute_enter_bet(deps, env, info, id, amount, bet)
         },
-        ExecuteMsg::ClaimBet { bet_id,current_date, player, real_value } => {
-            execute::execute_claim_bet(deps, env, info, bet_id, current_date, player, real_value)
+        ExecuteMsg::ClaimBet { bet_id,current_date,real_value } => {
+            execute::execute_claim_bet(deps, env, info, bet_id, current_date,real_value)
         },
     };
     Ok(Response::new().add_attribute("method", "execute"))
@@ -151,8 +152,9 @@ pub mod execute {
         id: Uint128,
         current_date : Uint128,
         amount: Uint128,
-        bet : Uint128
+        
     ) -> StdResult<Response> {
+        let bet = info.funds.iter().map(|c| c.amount).sum();
        let mut bet_struct = BET
             .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
             .find(|r| match r {
@@ -188,14 +190,14 @@ pub mod execute {
     }
 
     fn calculate_reward(
-        deps: DepsMut,
+        storage: &mut dyn Storage,
         info: MessageInfo,
         player: Addr,
         bet_id: Uint128,
         real_value: Uint128
     ) -> StdResult<Uint128> {
         let mut bet_predictions: Vec<BetPrediction> = BET_PREDICTION
-            .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+            .range(storage, None, None, cosmwasm_std::Order::Ascending)
             .filter_map(|r| match r {
                 Ok((_, bet)) => if bet.bet_id == bet_id { Some(bet) } else { None },
                 _ => None
@@ -243,7 +245,7 @@ pub mod execute {
             prediction.reward = deposit_portion + rank_portion;
 
             // Save updated prediction
-            BET_PREDICTION.save(deps.storage, &bet_id.to_be_bytes(), prediction)?;
+            BET_PREDICTION.save(storage, &bet_id.to_be_bytes(), prediction)?;
 
             // Return the reward for the specified player
             if prediction.player == player {
@@ -260,9 +262,9 @@ pub mod execute {
         info: MessageInfo,
         id : Uint128,
         current_date : Uint128,
-        player : Addr,
         real_value : Uint128
     ) -> StdResult<Response> {
+        let player = &info.sender;
         let mut bet_struct = BET
             .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
             .find(|r| match r {
@@ -273,24 +275,25 @@ pub mod execute {
             .map_err(|e| StdError::generic_err(format!("Failed to load bet: {}", e)))?
             .1;
 
-        if current_date < bet_struct.end_date {
+        if current_date < bet_struct.clone().end_date {
             return Err(StdError::generic_err("Bet has not ended yet"));
         }
 
-        let bet_id = bet_struct.id;
+        let bet_id = bet_struct.clone().id;
 
-        let prediction_key = (bet_id.u128().to_be_bytes(), player.as_bytes()).concat();
+        let mut prediction_key = bet_id.u128().to_be_bytes().to_vec();
+        prediction_key.extend(player.as_bytes());
         
         let bet_prediction = BET_PREDICTION
             .load(deps.storage, &prediction_key)
             .map_err(|_| StdError::generic_err("Bet prediction not found"))?;
 
-            let reward_amount = calculate_reward(deps, info, player, bet_id, real_value)?;
+            let reward_amount = calculate_reward(deps.storage, info.clone(), player.clone(), bet_id, real_value)?;
 
             let claim_msg = BankMsg::Send {
                 to_address: player.to_string(),
                 amount: vec![Coin {
-                    denom: bet_struct.token,
+                    denom: bet_struct.clone().token,
                     amount: reward_amount,
                 }]
             };

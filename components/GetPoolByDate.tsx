@@ -1,11 +1,13 @@
 "use client"
 import { useEffect, useState } from "react";
 import { useTransaction } from "../interaction/useTransaction";
+import { useRouter } from 'next/navigation';
 
 const GetPoolByDate = () => {
   const [pools, setPools] = useState<any[]>([]);
   const [date, setDate] = useState("");
   const { getPoolByDate } = useTransaction();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -13,6 +15,10 @@ const GetPoolByDate = () => {
     if (result) {
       setPools(result.pools || []);
     }
+  };
+
+  const handlePoolClick = (pool: any) => {
+    router.push(`/predict/${pool.id}`);
   };
 
   return (
@@ -39,7 +45,11 @@ const GetPoolByDate = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {pools.map((pool, index) => (
-          <div key={index} className="bg-gray-800 p-4 rounded-lg shadow">
+          <div 
+            key={index} 
+            className="bg-gray-800 p-4 rounded-lg shadow cursor-pointer transform transition-transform hover:scale-105"
+            onClick={() => handlePoolClick(pool)}
+          >
             <div className="text-white">
               <p className="font-semibold">Token: {pool.token}</p>
               <p>Date: {pool.date}</p>
