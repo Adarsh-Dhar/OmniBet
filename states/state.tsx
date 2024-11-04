@@ -19,6 +19,11 @@ const store = (set : any) => ({
     changeOfflineSigner : (offlineSigner : any) => set({offlineSigner: offlineSigner})
 })
 
+const betStore = (set : any) => ({
+  tokenSelected : '',
+  changeToken : (token : string) => set({tokenSelected: token})
+})
+
 const log = (config : any) => (set : any, get : any, api : any) =>
   config(
     (...args : any) => {
@@ -33,5 +38,9 @@ const log = (config : any) => (set : any, get : any, api : any) =>
 
 export const useStore = create(
     subscribeWithSelector(log(persist(devtools(store), { name: 'store' })))
+  );
+
+  export const useBetStore = create(
+    subscribeWithSelector(log(persist(devtools(store), { name: 'betstore' })))
   );
   

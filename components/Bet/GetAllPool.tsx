@@ -1,17 +1,19 @@
 "use client"
 import { useEffect, useState } from "react";
-import { useTransaction } from "../interaction/useTransaction";
+import { useTransaction } from "../../interaction/useTransaction";
 import { useRouter } from 'next/navigation';
+import { useBetStore } from '@/states/state';
 
 const GetAllPool = () => {
   const [pools, setPools] = useState<any[]>([]);
   const { getAllPools } = useTransaction();
   const router = useRouter();
+  const changeToken = useBetStore((token : any) => token.changeToken)
 
   useEffect(() => {
     const fetchPools = async () => {
       const result = await getAllPools();
-      console.log("result", result)
+      console.log("result", result.pools[0])
       if (result) {
         setPools(result.pools || []);
       }
@@ -21,7 +23,10 @@ const GetAllPool = () => {
   }, []);
 
   const handlePoolClick = (pool: any) => {
-    router.push(`/predict/${pool.id}`);
+    console.log("pool", pool)
+    console.log("token", pool.token)
+    changeToken(pool.token)
+    router.push(`/Predict`);
   };
 
   return (
@@ -36,7 +41,7 @@ const GetAllPool = () => {
           >
             <div className="text-white">
               <p className="font-semibold">Token: {pool.token}</p>
-              <p>Date: {pool.date}</p>
+              <p>Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
               <p>Amount: {pool.total_amount}</p>
             </div>
           </div>

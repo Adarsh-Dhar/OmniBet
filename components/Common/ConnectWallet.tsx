@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import { useStore } from "../states/state";
+import { useStore } from "@/states/state";
 import { NibiruTxClient, Testnet } from "@nibiruchain/nibijs";
 
 

@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Navbar from "@/components/Navbar";
-import GetAllPool from "@/components/GetAllPool";
+import Navbar from "@/components/Common/Navbar";
+import GetAllPool from "@/components/Bet/GetAllPool";
 
 export default function Home() {
   return (

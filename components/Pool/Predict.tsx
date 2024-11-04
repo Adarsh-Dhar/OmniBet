@@ -1,32 +1,18 @@
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import ChainList from './ChainList';
+import ChainList from '../Common/ChainList';
 import handler from '@/scripts/oracle';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/states/state';
 import axios from 'axios';
+import { tokenIdMap } from '../Common/tokenMap';
 
 const Predict = () => {
   const [primaryToken, setPrimaryToken] = useState(null);
   const [referenceToken, setReferenceToken] = useState(null);
   const router = useRouter();
-  const tokenIdMap = {
-    "archway": "arch-archway",
-    "nibiru": "nibi-nibiru", 
-    "coreum": "core-coreum",
-    "injective-protocol": "inj-injective-protocol",
-    "ethereum": "eth-ethereum",
-    "bitcoin": "btc-bitcoin", 
-    "solana": "sol-solana",
-    "binance": "bnb-binance",
-    "cardano": "ada-cardano",
-    "polkadot": "dot-polkadot",
-    "ripple": "xrp-ripple",
-    "dogecoin": "doge-dogecoin",
-    "avalanche": "avax-avalanche",
-    "polygon": "matic-polygon"
-  };
+  
   const tokenSelected = useStore((token : any) => token.tokenSelected)
   console.log("selected token", tokenSelected)
   const pricesArray = useStore((state : any) => state.prices)

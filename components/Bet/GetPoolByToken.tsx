@@ -1,15 +1,17 @@
 "use client"
 import { useEffect, useState } from "react";
-import { useTransaction } from "../interaction/useTransaction";
-import ChainList from "./ChainList";
-import { useStore } from "../states/state";
+import { useTransaction } from "../../interaction/useTransaction";
+import ChainList from "../Common/ChainList";
+import { useStore } from "../../states/state";
 import { useRouter } from 'next/navigation';
+import { useBetStore } from '@/states/state';
 
 const GetPoolByToken = () => {
   const [pools, setPools] = useState<any[]>([]);
   const { getPoolByToken } = useTransaction();
   const tokenSelected = useStore((state: any) => state.tokenSelected);
   const router = useRouter();
+  const changeToken = useBetStore((token: any) => token.changeToken);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +24,10 @@ const GetPoolByToken = () => {
   };
 
   const handlePoolClick = (pool: any) => {
-    router.push(`/predict/${pool.id}`);
+    console.log("pool", pool);
+    console.log("token", pool.token);
+    changeToken(pool.token);
+    router.push(`/Predict`);
   };
 
   return (
@@ -50,9 +55,8 @@ const GetPoolByToken = () => {
           >
             <div className="text-white">
               <p className="font-semibold">Token: {pool.token}</p>
-              <p>Date: {pool.date}</p>
-              <p>Amount: {pool.amount}</p>
-              <p>Owner: {pool.owner}</p>
+              <p>Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
+              <p>Amount: {pool.total_amount}</p>
             </div>
           </div>
         ))}

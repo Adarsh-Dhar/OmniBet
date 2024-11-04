@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Navbar from "@/components/Navbar";
-import PredictionGraph from "@/components/PredictionGraph";
-import CreatePredictionPool from "@/components/CreatePool";
+import Navbar from "@/components/Common/Navbar";
+import PredictionGraph from "@/components/Graphs/PredictionGraph";
+import CreatePredictionPool from "@/components/Pool/CreatePool";
 
 
 

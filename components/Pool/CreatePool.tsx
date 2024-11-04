@@ -1,8 +1,8 @@
 // components/CreatePredictionPool.tsx
 "use client"
 import { useState } from 'react';
-import { useStore } from '../states/state';
-import { useTransaction } from '../interaction/useTransaction';
+import { useStore } from '../../states/state';
+import { useTransaction } from '../../interaction/useTransaction';
 
 const CreatePredictionPool = () => {
   const [predictionDate, setPredictionDate] = useState('');

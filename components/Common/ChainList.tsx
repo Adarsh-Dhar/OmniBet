@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
-import {useStore} from '../states/state';
+import {useStore} from '../../states/state';
 
 
 const ChainList = () => {

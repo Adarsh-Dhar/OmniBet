@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useEffect, useState } from "react";
 import { Chart, ChartData, ChartOptions } from "chart.js/auto";
-import {useStore} from '../states/state';
+import {useStore} from '@/states/state';
 
 
 
