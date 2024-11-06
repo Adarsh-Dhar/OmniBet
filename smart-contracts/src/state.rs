@@ -12,7 +12,7 @@ use cw_storage_plus::{Item, Map};
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct BetPrediction {
     pub player: Addr,
-    pub bet: Uint128,
+    pub bet: f64,
     pub bet_id : Uint128,
     pub amount : Uint128,
     pub reward : Uint128,

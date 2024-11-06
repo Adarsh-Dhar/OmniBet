@@ -7,7 +7,7 @@ export function useTransaction() {
   const offlineSigner = useStore((state : any) => state.offlineSigner);
   const chain = Testnet(1);
   const [isLoading, setIsLoading] = useState(false)
-  const contractAddress = "nibi1rdq7el0pvhfswy4mx5yh84wyxdcd4pkfuwpnvwl4lr0asls6sgls77tge6";
+  const contractAddress = "nibi169wj4wcspujv697lw4rjm6rnamaacpjfnw2k9ddwmtghrf6j02aqxetzen";
 
   const createPool = async (owner: string, start_date: string, end_date: string, token: string, amount: string, deadline: string) => {
     console.log("offlineSigner", offlineSigner)

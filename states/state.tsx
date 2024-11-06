@@ -21,7 +21,9 @@ const store = (set : any) => ({
 
 const betStore = (set : any) => ({
   tokenSelected : '',
-  changeToken : (token : string) => set({tokenSelected: token})
+  poolId : 0,
+  changeToken : (token : string) => set({tokenSelected: token}),
+  changePoolId : (poolId : number) => set({poolId: poolId})
 })
 
 const log = (config : any) => (set : any, get : any, api : any) =>
@@ -41,6 +43,6 @@ export const useStore = create(
   );
 
   export const useBetStore = create(
-    subscribeWithSelector(log(persist(devtools(store), { name: 'betstore' })))
+    subscribeWithSelector(log(persist(devtools(betStore), { name: 'betstore' })))
   );
   

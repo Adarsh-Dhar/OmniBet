@@ -153,7 +153,7 @@ pub mod execute {
         info: MessageInfo,
         id: Uint128,
         current_date : Uint128,
-        bet: Uint128,
+        bet: f64,
         
     ) -> StdResult<Response> {
         let amount = info.funds.iter().map(|c| c.amount).sum();
@@ -196,7 +196,7 @@ pub mod execute {
         info: MessageInfo,
         player: Addr,
         bet_id: Uint128,
-        real_value: Uint128
+        real_value: f64
     ) -> StdResult<Uint128> {
         let mut bet_predictions: Vec<BetPrediction> = BET_PREDICTION
             .range(storage, None, None, cosmwasm_std::Order::Ascending)
@@ -218,7 +218,7 @@ pub mod execute {
         bet_predictions.sort_by(|a, b| {
             let diff_a = if a.bet >= real_value { a.bet - real_value } else { real_value - a.bet };
             let diff_b = if b.bet >= real_value { b.bet - real_value } else { real_value - b.bet };
-            diff_a.cmp(&diff_b)
+            diff_a.partial_cmp(&diff_b).unwrap()
         });
 
         let max_rank = bet_predictions.len();
@@ -264,7 +264,7 @@ pub mod execute {
         info: MessageInfo,
         id : Uint128,
         current_date : Uint128,
-        real_value : Uint128
+        real_value : f64
     ) -> StdResult<Response> {
         let player = &info.sender;
         let mut bet_struct = BET
@@ -369,220 +369,3 @@ pub mod query {
         Ok(PoolsByDateResponse { pools })
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use cosmwasm_std::testing::{
-//         mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
-//     };
-//     use cosmwasm_std::{coins, from_binary, OwnedDeps, Addr, coin};
-//     use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-//     use crate::state::{BetStatus, Bet, BetPrediction};
-
-//     const CREATOR: &str = "creator";
-//     const PLAYER: &str = "player";
-//     const DENOM: &str = "uatom";
-
-//     fn setup_contract() -> OwnedDeps<MockStorage, MockApi, MockQuerier> {
-//         let mut deps = mock_dependencies();
-//         let msg = InstantiateMsg {};
-//         let info = mock_info(CREATOR, &[]);
-//         let env = mock_env();
-
-//         // Instantiate the contract
-//         let res = instantiate(deps.as_mut(), env, info, msg).unwrap();
-//         assert_eq!(0, res.messages.len());
-
-//         deps
-//     }
-
-//     #[test]
-//     fn proper_initialization() {
-//         let mut deps = setup_contract();
-        
-//         // Verify initial state
-//         let bet = BET.load(&deps.storage).unwrap();
-//         assert_eq!(bet.bet_status, BetStatus::not_created);
-//     }
-
-//     #[test]
-//     fn test_create_bet() {
-//         let mut deps = setup_contract();
-//         let env = mock_env();
-//         let info = mock_info(CREATOR, &coins(100, DENOM));
-
-//         // Create a bet
-//         let msg = ExecuteMsg::CreatePool {
-//             owner: Addr::unchecked(CREATOR),
-//             deadline: Timestamp::from_seconds(1000u64),
-//             token: "BTC".to_string(),
-//             amount: Uint128::new(100),
-//         };
-
-//         let res = execute(
-//             deps.as_mut(),
-//             env.clone(),
-//             info.clone(),
-//             msg,
-//         ).unwrap();
-
-    //     // Verify bet creation
-    //     let bet = BET.load(&deps.storage).unwrap();
-    //     assert_eq!(bet.creator, Addr::unchecked(CREATOR));
-    //     assert_eq!(bet.bet_status, BetStatus::created);
-    //     assert_eq!(bet.token, "BTC");
-        
-    //     // Test creating duplicate bet
-    //     let msg = ExecuteMsg::CreatePool {
-    //         owner: Addr::unchecked(CREATOR),
-    //         deadline: Timestamp::from_seconds(1000u64),
-    //         token: "ETH".to_string(),
-    //         amount: Uint128::new(100),
-    //     };
-
-    //     let err = execute(
-    //         deps.as_mut(),
-    //         env,
-    //         info,
-    //         msg,
-    //     ).unwrap_err();
-    //     assert_eq!(err, StdError::generic_err("Bet already created"));
-    // }
-
-    // #[test]
-    // fn test_enter_bet() {
-    //     let mut deps = setup_contract();
-    //     let env = mock_env();
-        
-    //     // First create a bet
-    //     let create_msg = ExecuteMsg::CreatePool {
-    //         owner: Addr::unchecked(CREATOR),
-    //         deadline: Timestamp::from_seconds(1000u64),
-    //         token: "BTC".to_string(),
-    //         amount: Uint128::new(100),
-    //     };
-    //     let info = mock_info(CREATOR, &coins(100, DENOM));
-    //     execute(deps.as_mut(), env.clone(), info, create_msg).unwrap();
-
-    //     // Test entering bet
-    //     let enter_msg = ExecuteMsg::EnterBet {
-    //         id: Uint128::new(1),
-    //         amount: Uint128::new(50),
-    //         player: Addr::unchecked(PLAYER),
-    //     };
-    //     let player_info = mock_info(PLAYER, &coins(50, DENOM));
-    //     let res = execute(
-    //         deps.as_mut(),
-    //         env.clone(),
-    //         player_info,
-    //         enter_msg,
-    //     ).unwrap();
-
-    //     // Verify bet prediction
-    //     let prediction = BET_PREDICTION.load(&deps.storage).unwrap();
-    //     assert_eq!(prediction.player, Addr::unchecked(PLAYER));
-    //     assert_eq!(prediction.bet, Uint128::new(50));
-    // }
-
-    // #[test]
-    // fn test_claim_bet() {
-    //     let mut deps = setup_contract();
-    //     let env = mock_env();
-        
-    //     // Setup: Create bet and enter it
-    //     let create_msg = ExecuteMsg::CreatePool {
-    //         owner: Addr::unchecked(CREATOR),
-    //         deadline: Timestamp::from_seconds(1000u64),
-    //         token: "BTC".to_string(),
-    //         amount: Uint128::new(100),
-    //     };
-    //     execute(
-    //         deps.as_mut(),
-    //         env.clone(),
-    //         mock_info(CREATOR, &coins(100, DENOM)),
-    //         create_msg,
-    //     ).unwrap();
-
-    //     let enter_msg = ExecuteMsg::EnterBet {
-    //         id: Uint128::new(1),
-    //         amount: Uint128::new(50),
-    //         player: Addr::unchecked(PLAYER),
-    //     };
-    //     execute(
-    //         deps.as_mut(),
-    //         env.clone(),
-    //         mock_info(PLAYER, &coins(50, DENOM)),
-    //         enter_msg,
-    //     ).unwrap();
-
-    //     // Manually set bet as ended and set winner
-    //     let mut bet = BET.load(&deps.storage).unwrap();
-    //     bet.bet_status = BetStatus::ended;
-    //     bet.winner = Addr::unchecked(PLAYER);
-    //     BET.save(&mut deps.storage, &bet).unwrap();
-
-    //     // Test claiming
-    //     let claim_msg = ExecuteMsg::ClaimBet {
-    //         bet_id: Uint128::new(1),
-    //         player: Addr::unchecked(PLAYER),
-    //     };
-    //     let res = execute(
-    //         deps.as_mut(),
-    //         env.clone(),
-    //         mock_info(PLAYER, &[]),
-    //         claim_msg,
-    //     ).unwrap();
-
-    //     // Verify claim
-    //     let bet = BET.load(&deps.storage).unwrap();
-    //     assert_eq!(bet.bet_status, BetStatus::claimed);
-    // }
-
-//     #[test]
-//     fn test_queries() {
-//         let mut deps = setup_contract();
-//         let env = mock_env();
-        
-//         // Setup: Create a bet
-//         let create_msg = ExecuteMsg::CreatePool {
-//             owner: Addr::unchecked(CREATOR),
-//             deadline: Timestamp::from_seconds(1000u64),
-//             token: "BTC".to_string(),
-//             amount: Uint128::new(100),
-//         };
-//         execute(
-//             deps.as_mut(),
-//             env.clone(),
-//             mock_info(CREATOR, &coins(100, DENOM)),
-//             create_msg,
-//         ).unwrap();
-
-//         // Test get all pools
-//         let query_msg = QueryMsg::GetAllPool {};
-//         let res = query(deps.as_mut(), env.clone(), mock_info(CREATOR, &[]), query_msg).unwrap();
-//         // Add assertions based on expected response
-
-//         // Test get pool by token
-//         let query_msg = QueryMsg::GetPoolByToken {
-//             token: "BTC".to_string(),
-//         };
-//         let res = query(deps.as_mut(), env.clone(), mock_info(CREATOR, &[]), query_msg).unwrap();
-//         // Add assertions based on expected response
-
-//         // Test get pool by date
-//         let query_msg = QueryMsg::GetPoolByDate {
-//             date: env.block.time,
-//         };
-//         let res = query(deps.as_mut(), env.clone(), mock_info(CREATOR, &[]), query_msg).unwrap();
-//         // Add assertions based on expected response
-//     }
-
-   
-// }
-
-
-
-
-
-

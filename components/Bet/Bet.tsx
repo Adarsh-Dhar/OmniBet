@@ -6,6 +6,7 @@ import { useBetStore, useStore } from '@/states/state';
 import { useTransaction } from '../../interaction/useTransaction';
 import axios from 'axios';
 
+
 const Bet = () => {
   const [amount, setAmount] = useState('');
   const [prediction, setPrediction] = useState('');
@@ -16,13 +17,15 @@ const Bet = () => {
   const { enterBet } = useTransaction();
   const userAddress = useStore((user: any) => user.address)
   console.log("user address", userAddress)
+  const poolId = useBetStore((poolId : any) => poolId.poolId)
 
   const handleBet = () => {
     // Handle betting logic here
     const currentDate = Math.floor(Date.now() / 1000).toString();
     console.log('Betting amount:', amount);
     console.log('Prediction:', prediction);
-    enterBet("0", amount.toString(), prediction.toString(), currentDate, userAddress);
+    console.log("pool id", poolId)
+    enterBet(poolId, amount.toString(), prediction.toString(), currentDate, userAddress);
     
 }
 

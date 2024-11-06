@@ -22,12 +22,12 @@ pub enum ExecuteMsg {
     EnterBet {
         id: Uint128,
         current_date: Uint128,
-        bet: Uint128,
+        bet: f64,
     },
     ClaimBet {
         bet_id: Uint128,
         current_date: Uint128,
-        real_value: Uint128,
+        real_value: f64,
     }
 }
 

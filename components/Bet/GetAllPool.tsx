@@ -9,6 +9,7 @@ const GetAllPool = () => {
   const { getAllPools } = useTransaction();
   const router = useRouter();
   const changeToken = useBetStore((token : any) => token.changeToken)
+  const changePoolId = useBetStore((poolId : any) => poolId.changePoolId)
 
   useEffect(() => {
     const fetchPools = async () => {
@@ -26,6 +27,8 @@ const GetAllPool = () => {
     console.log("pool", pool)
     console.log("token", pool.token)
     changeToken(pool.token)
+    console.log("pool id", pool.id)
+    changePoolId(pool.id)
     router.push(`/Predict`);
   };
 
