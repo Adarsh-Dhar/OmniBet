@@ -171,7 +171,12 @@ pub mod execute {
                 return Err(StdError::generic_err("Bet deadline has reached"));
             }
 
-        bet_struct.total_amount += amount;
+        BET.update(deps.storage, &id.to_be_bytes(), |bet_opt| -> StdResult<Bet> {
+            let mut bet = bet_opt.unwrap();
+            bet.total_amount += amount;
+            Ok(bet)
+        })?;
+        
 
         let bet_prediction = BetPrediction {
             bet_id : id,
