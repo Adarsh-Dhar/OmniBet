@@ -159,7 +159,20 @@ pub mod execute {
         
     ) -> StdResult<Response> {
         let amount = info.funds.iter().map(|c| c.amount).sum();
-       let mut bet_struct = BET
+        
+        // Check if player has already entered this bet
+        let existing_prediction = BET_PREDICTION
+            .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+            .find(|r| match r {
+                Ok((_, pred)) => pred.bet_id == id && pred.player == info.sender,
+                _ => false
+            });
+
+        if existing_prediction.is_some() {
+            return Err(StdError::generic_err("Player has already entered this bet"));
+        }
+
+        let mut bet_struct = BET
             .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
             .find(|r| match r {
                 Ok((_, bet)) => bet.id == id,
@@ -169,9 +182,9 @@ pub mod execute {
             .map_err(|e| StdError::generic_err(format!("Failed to load bet: {}", e)))?
             .1;
 
-            if current_date > bet_struct.deadline {
-                return Err(StdError::generic_err("Bet deadline has reached"));
-            }
+        if current_date > bet_struct.deadline {
+            return Err(StdError::generic_err("Bet deadline has reached"));
+        }
 
         BET.update(deps.storage, &id.to_be_bytes(), |bet_opt| -> StdResult<Bet> {
             let mut bet = bet_opt.unwrap();
@@ -179,7 +192,6 @@ pub mod execute {
             Ok(bet)
         })?;
         
-
         let bet_prediction = BetPrediction {
             bet_id : id,
             player : info.sender,
@@ -205,6 +217,7 @@ pub mod execute {
         bet_id: Uint128,
         real_value: Decimal
     ) -> StdResult<Uint128> {
+        // Get all predictions for this bet_id
         let mut bet_predictions: Vec<BetPrediction> = BET_PREDICTION
             .range(storage, None, None, cosmwasm_std::Order::Ascending)
             .filter_map(|r| match r {
@@ -217,46 +230,62 @@ pub mod execute {
             return Err(StdError::generic_err("No bets found for this bet_id"));
         }
 
-        // Calculate differences and sort predictions
+        let total_participants = bet_predictions.len();
         let total_amount: Uint128 = bet_predictions.iter().map(|p| p.amount).sum();
-        let distributable_amount = total_amount.multiply_ratio(Uint128::from(95u128), Uint128::from(100u128)); // 95% of total pool
+        let distributable_amount = total_amount.multiply_ratio(Uint128::from(95u128), Uint128::from(100u128));
 
-        // Calculate and sort by difference
-        bet_predictions.sort_by(|a, b| {
-            let diff_a = if a.bet >= real_value { a.bet - real_value } else { real_value - a.bet };
-            let diff_b = if b.bet >= real_value { b.bet - real_value } else { real_value - b.bet };
-            diff_a.partial_cmp(&diff_b).unwrap()
-        });
+        // Calculate differences and store with index
+        let mut predictions_with_diff: Vec<(usize, Decimal, &mut BetPrediction)> = bet_predictions
+            .iter_mut()
+            .enumerate()
+            .map(|(i, pred)| {
+                let diff = if pred.bet >= real_value { 
+                    pred.bet - real_value 
+                } else { 
+                    real_value - pred.bet 
+                };
+                (i, diff, pred)
+            })
+            .collect();
 
-        let max_rank = bet_predictions.len();
-        let rank_denominator: Uint128 = (1..=max_rank)
-            .map(|i| Uint128::from(i as u128))
-            .sum();
+        // Sort by difference
+        predictions_with_diff.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
 
-        // Constants
-        let deposit_weight = Uint128::from(75u128); // 75%
-        let rank_weight = Uint128::from(25u128);    // 25%
+        // Assign ranks (same diff = same rank)
+        let mut current_rank = 1;
+        let mut prev_diff = predictions_with_diff[0].1;
+        let mut rank_map: Vec<(usize, u32)> = Vec::new();
 
-        // Calculate and save rewards
-        for (index, mut prediction) in bet_predictions.iter_mut().enumerate() {
-            // Calculate deposit portion
+        for (i, diff, _) in predictions_with_diff.iter() {
+            if *diff > prev_diff {
+                current_rank += 1;
+                prev_diff = *diff;
+            }
+            rank_map.push((*i, current_rank));
+        }
+
+        // Sort back to original order
+        rank_map.sort_by_key(|k| k.0);
+
+        // Calculate rewards based on rank
+        for (i, (_, rank)) in rank_map.iter().enumerate() {
+            let mut prediction = &mut bet_predictions[i];
+            
+            // Calculate deposit portion (75%)
             let deposit_portion = prediction.amount
-                .multiply_ratio(deposit_weight, Uint128::from(100u128))
+                .multiply_ratio(Uint128::from(75u128), Uint128::from(100u128))
                 .multiply_ratio(distributable_amount, total_amount);
 
-            // Calculate rank portion
-            let rank_value = Uint128::from((max_rank - index) as u128);
-            let rank_portion = rank_value
-                .multiply_ratio(rank_weight, Uint128::from(100u128))
-                .multiply_ratio(distributable_amount, rank_denominator);
+            // Calculate rank portion (25%)
+            let rank_portion = Uint128::from((total_participants + 1 - *rank as usize) as u128)
+                .multiply_ratio(Uint128::from(25u128), Uint128::from(100u128))
+                .multiply_ratio(distributable_amount, Uint128::from(total_participants as u128));
 
-            // Total reward
             prediction.reward = deposit_portion + rank_portion;
-
+            
             // Save updated prediction
             BET_PREDICTION.save(storage, &bet_id.to_be_bytes(), prediction)?;
 
-            // Return the reward for the specified player
             if prediction.player == player {
                 return Ok(prediction.reward);
             }

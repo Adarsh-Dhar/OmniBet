@@ -50,17 +50,7 @@ const CreatePredictionPool = () => {
             required
           />
         </div>
-        <div>
-          
-          <input
-            type="number"
-            id="entryFee"
-            value={entryFee}
-            onChange={(e) => setEntryFee(e.target.valueAsNumber || '')}
-            className="mt-1 p-2 border border-gray-300 rounded-md w-full"
-            placeholder="0"
-          />
-        </div>
+       
         <div>
           <label htmlFor="predictionDate" className="block text-sm font-medium text-gray-700">
             Prediction Deadline

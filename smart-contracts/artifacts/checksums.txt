@@ -1,1 +1,1 @@
-dbb8218d8932e59aea75ec854dfdf1e4b3071cf96169e26abe64a97c09e5ea59  counter_contract.wasm
+17ee2b2f59fd7f57e249494aa537767305dcee3372470456920cc341b3cc72e8  counter_contract.wasm

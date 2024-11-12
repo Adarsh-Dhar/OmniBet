@@ -63,7 +63,7 @@ const GetAllPool = () => {
                     handlePoolClick(pool);
                   }}
                 >
-                  Bet
+                  {pool.status === "claim" ? "Claim" : "Bet"}
                 </Button>
               </div>
             </CardContent>
