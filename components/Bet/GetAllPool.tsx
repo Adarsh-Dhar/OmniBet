@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTransaction } from "../../interaction/useTransaction";
 import { useRouter } from 'next/navigation';
 import { useBetStore } from '@/states/state';
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 
 const GetAllPool = () => {
   const [pools, setPools] = useState<any[]>([]);
@@ -37,19 +38,22 @@ const GetAllPool = () => {
       <h2 className="text-2xl font-bold mb-4">All Betting Pools</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {pools.map((pool, index) => (
-          <div 
-            key={index} 
-            className="bg-gray-800 p-4 rounded-lg shadow cursor-pointer transform transition-transform hover:scale-105"
+          <Card 
+            key={index}
+            className="cursor-pointer transform transition-transform hover:scale-105"
             onClick={() => handlePoolClick(pool)}
           >
-            <div className="text-white">
-              <p className="font-semibold">Token: {pool.token}</p>
-              <p>End Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
-              <p>Deadline: {new Date(pool.deadline * 1000).toLocaleDateString()}</p>
-
-              <p>Amount: {pool.total_amount}</p>
-            </div>
-          </div>
+            <CardHeader>
+              <CardTitle className="text-lg">Token: {pool.token}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p>End Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
+                <p>Deadline: {new Date(pool.deadline * 1000).toLocaleDateString()}</p>
+                <p>Amount: {pool.total_amount}</p>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>

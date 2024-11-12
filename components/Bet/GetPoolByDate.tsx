@@ -3,6 +3,12 @@ import { useEffect, useState } from "react";
 import { useTransaction } from "../../interaction/useTransaction";
 import { useRouter } from 'next/navigation';
 import { useBetStore } from '@/states/state';
+import { 
+  Card, 
+  CardHeader, 
+  CardTitle, 
+  CardContent 
+} from "@/components/ui/card";
 
 const GetPoolByDate = () => {
   const [pools, setPools] = useState<any[]>([]);
@@ -13,7 +19,6 @@ const GetPoolByDate = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Convert date to Unix timestamp (seconds) at 00:00:00
     const unixTimestamp = Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
     console.log("date", date);
     console.log("deadline in query", unixTimestamp.toString());
@@ -54,17 +59,21 @@ const GetPoolByDate = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {pools.map((pool, index) => (
-          <div 
-            key={index} 
-            className="bg-gray-800 p-4 rounded-lg shadow cursor-pointer transform transition-transform hover:scale-105"
+          <Card 
+            key={index}
+            className="cursor-pointer transform transition-transform hover:scale-105 bg-gray-800"
             onClick={() => handlePoolClick(pool)}
           >
-            <div className="text-white">
-              <p className="font-semibold">Token: {pool.token}</p>
-              <p>Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
-              <p>Amount: {pool.total_amount}</p>
-            </div>
-          </div>
+            <CardHeader>
+              <CardTitle className="text-white">{pool.token}</CardTitle>
+            </CardHeader>
+            <CardContent className="text-gray-300">
+              <div className="space-y-2">
+                <p>Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
+                <p>Amount: {pool.total_amount}</p>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>

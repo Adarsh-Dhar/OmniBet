@@ -5,6 +5,12 @@ import ChainList from "../Common/ChainList";
 import { useStore } from "../../states/state";
 import { useRouter } from 'next/navigation';
 import { useBetStore } from '@/states/state';
+import { 
+  Card, 
+  CardHeader, 
+  CardTitle, 
+  CardContent 
+} from "@/components/ui/card";
 
 const GetPoolByToken = () => {
   const [pools, setPools] = useState<any[]>([]);
@@ -48,17 +54,21 @@ const GetPoolByToken = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {pools.map((pool, index) => (
-          <div 
-            key={index} 
-            className="bg-gray-800 p-4 rounded-lg shadow cursor-pointer transform transition-transform hover:scale-105"
+          <Card 
+            key={index}
+            className="cursor-pointer transform transition-transform hover:scale-105 bg-gray-800"
             onClick={() => handlePoolClick(pool)}
           >
-            <div className="text-white">
-              <p className="font-semibold">Token: {pool.token}</p>
-              <p>Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
-              <p>Amount: {pool.total_amount}</p>
-            </div>
-          </div>
+            <CardHeader>
+              <CardTitle className="text-white">{pool.token}</CardTitle>
+            </CardHeader>
+            <CardContent className="text-gray-300">
+              <div className="space-y-2">
+                <p>Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
+                <p>Amount: {pool.total_amount}</p>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     </div>
