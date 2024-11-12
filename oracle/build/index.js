@@ -18,6 +18,8 @@ app.use(cors());
 app.use(express.json());
 const getHistoricalTickers = (token) => __awaiter(void 0, void 0, void 0, function* () {
     const start = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    console.log("start", start);
+    console.log("start string", start.toISOString().slice(0, 10));
     try {
         const historicalTickers = yield client.getAllTickers({
             coinId: token,
@@ -39,10 +41,48 @@ const getHistoricalTickers = (token) => __awaiter(void 0, void 0, void 0, functi
         throw error;
     }
 });
+const getPriceByDate = (token, date) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const historicalTickers = yield client.getAllTickers({
+            coinId: token,
+            historical: {
+                start: date,
+                interval: "1d",
+            },
+        });
+        if (historicalTickers.error)
+            throw new Error(historicalTickers.error);
+        // Get the first (and should be only) ticker for that date
+        const ticker = historicalTickers[0];
+        if (!ticker) {
+            throw new Error('No price data available for the specified date');
+        }
+        return {
+            timestamp: ticker.timestamp.slice(0, 10),
+            price: ticker.price
+        };
+    }
+    catch (error) {
+        console.error(error);
+        throw error;
+    }
+});
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const token = req.query.token;
         const data = yield getHistoricalTickers(token);
+        res.json(data);
+    }
+    catch (error) {
+        //@ts-ignore
+        res.status(500).json({ error: error.message });
+    }
+}));
+app.get("/byDate", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const token = req.query.token;
+        const date = req.query.date;
+        const data = yield getPriceByDate(token, date);
         res.json(data);
     }
     catch (error) {

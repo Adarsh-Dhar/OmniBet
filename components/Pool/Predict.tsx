@@ -25,10 +25,7 @@ const Predict = () => {
   console.log("token id", tokenId)
 
   const handlePredict = async () => {
-    
-      console.log(`Predicting ${primaryToken} against ${referenceToken}`);
-
-      
+          console.log("token id", tokenId)
           const response = await axios.get(`http://localhost:5000/`, {
             params: {
               token: tokenId

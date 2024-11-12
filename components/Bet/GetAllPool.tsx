@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useBetStore } from '@/states/state';
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
+import axios from "axios";
+import { tokenIdMap } from "../Common/tokenMap";
 
 const GetAllPool = () => {
   const [pools, setPools] = useState<any[]>([]);
@@ -12,6 +14,7 @@ const GetAllPool = () => {
   const router = useRouter();
   const changeToken = useBetStore((token : any) => token.changeToken)
   const changePoolId = useBetStore((poolId : any) => poolId.changePoolId)
+  
 
   useEffect(() => {
     const fetchPools = async () => {
@@ -25,13 +28,29 @@ const GetAllPool = () => {
     fetchPools();
   }, []);
 
-  const handlePoolClick = (pool: any) => {
-    console.log("pool", pool)
-    console.log("token", pool.token)
-    changeToken(pool.token)
-    console.log("pool id", pool.id)
-    changePoolId(pool.id)
-    router.push(`/Predict`);
+  const handlePoolClick = async (pool: any) => {
+    if (pool.status === "vote") {
+      console.log("pool", pool)
+      console.log("token", pool.token)
+      changeToken(pool.token)
+      console.log("pool id", pool.id)
+      changePoolId(pool.id)
+      router.push(`/Predict`);
+    } else {
+      const token = pool.token
+      const tokenId = tokenIdMap[token as keyof typeof tokenIdMap]
+      console.log("pool end date", pool.end_date)
+      const endDate = new Date(pool.end_date * 1000).toISOString().slice(0, 10)
+      console.log("endDate", endDate)
+      console.log("tokenId", tokenId)
+      const response = await axios.get(`http://localhost:5000/byDate/`, {
+        params: {
+          token: tokenId,
+          date : pool.end_date
+        }
+      });
+      console.log("response", response)
+    }
   };
 
   return (
