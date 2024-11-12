@@ -145,9 +145,11 @@ export function useTransaction() {
       console.log("client", client)
       console.log("executeMsg", executeMsg)
 
+      let real_amount = parseFloat(amount) * 1000000;
+
       const funds = [{
         denom: "unibi",
-        amount: amount
+        amount: real_amount.toString()
       }];
 
       const fee = "auto";

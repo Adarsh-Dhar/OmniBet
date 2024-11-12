@@ -65,7 +65,7 @@ const GetPoolByToken = () => {
             <CardContent className="text-gray-300">
               <div className="space-y-2">
                 <p>Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
-                <p>Amount: {pool.total_amount}</p>
+                <p>Amount: {pool.total_amount / 1000000}</p>
               </div>
             </CardContent>
           </Card>
