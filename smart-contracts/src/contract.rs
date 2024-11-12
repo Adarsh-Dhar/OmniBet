@@ -8,10 +8,10 @@ use {
             QueryMsg,
             InstantiateMsg,
             MigrateMsg,
-            AllPoolsResponse
+
         },
         state::{
-            PRIZE_DISTRIBUTION,
+
             BET,
             BET_PREDICTION,
             BetStatus,
@@ -31,15 +31,15 @@ use {
         StdError,
         StdResult,
         Uint128,
-        Timestamp,
+
         Addr,
         BankMsg,
         Storage,
-        from_binary,
+
         Decimal
     },
    
-    std::time::Duration,
+
 };
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -105,7 +105,7 @@ pub mod execute {
                 end_date: end_date,
                 total_amount: Uint128::zero(),
                 deadline: deadline,
-                status : BetStatus::created
+                status : BetStatus::vote
             };
             BET.save(deps.storage, &Uint128::zero().to_be_bytes(), &default_bet)?;
             return Ok(Response::new()
@@ -138,7 +138,7 @@ pub mod execute {
             end_date: end_date,
             total_amount: Uint128::zero(),
             deadline: deadline,
-            status : BetStatus::created
+            status : BetStatus::vote
         };
 
         // Save the new bet to both maps
@@ -322,9 +322,9 @@ pub mod execute {
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::GetAllPool {} => to_json_binary(&query::query_get_all_pool(deps)?),
-        QueryMsg::GetPoolByToken { token } => to_json_binary(&query::query_get_pool_by_token(deps, token)?),
-        QueryMsg::GetPoolByDate { date } => to_json_binary(&query::query_get_pool_by_date(deps, date)?),
+        QueryMsg::GetAllPool {current_time} => to_json_binary(&query::query_get_all_pool(deps, current_time)?),
+        QueryMsg::GetPoolByToken { token, current_time } => to_json_binary(&query::query_get_pool_by_token(deps, token, current_time)?),
+        QueryMsg::GetPoolByDate { date, current_time } => to_json_binary(&query::query_get_pool_by_date(deps, date, current_time)?),
     }
 }
 
@@ -332,22 +332,34 @@ pub mod query {
     use super::*;
     use crate::msg::{AllPoolsResponse, PoolsByTokenResponse, PoolsByDateResponse};
 
-    pub fn query_get_all_pool(deps: Deps) -> StdResult<AllPoolsResponse> {
+    pub fn query_get_all_pool(deps: Deps, current_time: Uint128) -> StdResult<AllPoolsResponse> {
         let pools: Vec<Bet> = BET
             .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
             .collect::<StdResult<Vec<_>>>()?
             .into_iter()
-            .map(|(_, bet)| bet)
+            .map(|(_, mut bet)| {
+                if current_time < bet.deadline {
+                    bet.status = BetStatus::vote;
+                }else{
+                    bet.status = BetStatus::claim;
+                }
+                bet
+            })
             .collect();
         Ok(AllPoolsResponse { pools })
     }
 
-    pub fn query_get_pool_by_token(deps: Deps, token: String) -> StdResult<PoolsByTokenResponse> {
+    pub fn query_get_pool_by_token(deps: Deps, token: String, current_time: Uint128) -> StdResult<PoolsByTokenResponse> {
         let pools: Vec<Bet> = BET
             .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
             .filter_map(|item| {
-                item.ok().and_then(|(_, bet)| {
+                item.ok().and_then(|(_, mut bet)| {
                     if bet.token == token {
+                        if current_time < bet.deadline {
+                            bet.status = BetStatus::vote;
+                        }else{
+                            bet.status = BetStatus::claim;
+                        }
                         Some(bet)
                     } else {
                         None
@@ -359,12 +371,17 @@ pub mod query {
         Ok(PoolsByTokenResponse { pools })
     }
     
-    pub fn query_get_pool_by_date(deps: Deps, deadline: Uint128) -> StdResult<PoolsByDateResponse> {
+    pub fn query_get_pool_by_date(deps: Deps, deadline: Uint128, current_time: Uint128) -> StdResult<PoolsByDateResponse> {
         let pools: Vec<Bet> = BET
             .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
             .filter_map(|item| {
-                item.ok().and_then(|(_, bet)| {
+                item.ok().and_then(|(_, mut bet)| {
                     if bet.deadline == deadline {
+                        if current_time < bet.deadline {
+                            bet.status = BetStatus::vote;
+                        }else{
+                            bet.status = BetStatus::claim;
+                        }
                         Some(bet)
                     } else {
                         None
@@ -384,6 +401,56 @@ mod tests {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use crate::msg::{ExecuteMsg, QueryMsg, InstantiateMsg};
 
+    fn setup_test_pools(deps: &mut cosmwasm_std::OwnedDeps<cosmwasm_std::MemoryStorage, cosmwasm_std::testing::MockApi, cosmwasm_std::testing::MockQuerier>) -> StdResult<()> {
+        let env = mock_env();
+        let info = mock_info("creator", &[]);
+
+        // Instantiate contract
+        let msg = InstantiateMsg {};
+        instantiate(deps.as_mut(), env.clone(), info.clone(), msg)?;
+
+        // Create multiple test pools
+        let pools = vec![
+            (
+                "unibi".to_string(),
+                Uint128::from(1000u128),
+                Uint128::from(2000u128),
+                Uint128::from(1500u128)
+            ),
+            (
+                "atom".to_string(), 
+                Uint128::from(1500u128),
+                Uint128::from(2500u128),
+                Uint128::from(2000u128)
+            ),
+            (
+                "osmo".to_string(),
+                Uint128::from(1800u128),
+                Uint128::from(2800u128),
+                Uint128::from(2300u128)
+            ),
+            (
+                "unibi".to_string(), // Second unibi pool
+                Uint128::from(2000u128),
+                Uint128::from(3000u128),
+                Uint128::from(2500u128)
+            )
+        ];
+
+        for (token, start_date, end_date, deadline) in pools {
+            let create_msg = ExecuteMsg::CreatePool {
+                start_date,
+                end_date,
+                token,
+                amount: Uint128::from(1000000u128),
+                deadline
+            };
+            execute(deps.as_mut(), env.clone(), info.clone(), create_msg)?;
+        }
+        
+        Ok(())
+    }
+
     #[test]
     fn test_create_and_query_pool() {
         let mut deps = mock_dependencies();
@@ -393,7 +460,7 @@ mod tests {
         let msg = InstantiateMsg {};
         let info = mock_info("creator", &[]);
         let res = instantiate(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
-        assert_eq!(Uint128::zero(), Uint128::from(res.messages.len() as u128));
+        assert_eq!(0, res.messages.len());
 
         // Create a pool
         let create_msg = ExecuteMsg::CreatePool {
@@ -408,11 +475,11 @@ mod tests {
         let res = execute(deps.as_mut(), env.clone(), info, create_msg).unwrap();
         
         // Verify pool creation attributes
-        assert_eq!(Uint128::from(2u128), Uint128::from(res.attributes.len() as u128));
+        assert_eq!(2, res.attributes.len());
         assert_eq!("method", res.attributes[0].key);
         assert_eq!("execute_create_bet", res.attributes[0].value);
         assert_eq!("bet_id", res.attributes[1].key);
-        assert_eq!("0", res.attributes[1].value); // First pool should have ID 0
+        assert_eq!("0", res.attributes[1].value);
 
         // Enter bet with 500000 unibi
         let enter_msg = ExecuteMsg::EnterBet {
@@ -425,30 +492,105 @@ mod tests {
             denom: "unibi".to_string(),
             amount: Uint128::from(500000u128)
         }];
-        let info = mock_info("nibi1q3anugqtcnzlt8kts7j0l08t67kfkg60kse08w", &funds);
+        let info = mock_info("player", &funds);
         let res = execute(deps.as_mut(), env.clone(), info, enter_msg).unwrap();
 
-        // Verify enter bet attributes
-        assert_eq!(Uint128::from(3u128), Uint128::from(res.attributes.len() as u128));
+        assert_eq!(3, res.attributes.len());
         assert_eq!("method", res.attributes[0].key);
         assert_eq!("execute_enter_bet", res.attributes[0].value);
         assert_eq!("amount", res.attributes[2].key);
         assert_eq!("500000", res.attributes[2].value);
+    }
 
-        // Query all pools
+    #[test]
+    fn test_query_all_pools() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
+        
+        setup_test_pools(&mut deps).unwrap();
+
+        // Test pools before end date
         let query_msg = QueryMsg::GetAllPool {};
-        let res = query(deps.as_ref(), env, query_msg).unwrap();
+        let res = query(deps.as_ref(), env.clone(), query_msg).unwrap();
         let pools: AllPoolsResponse = from_binary(&res).unwrap();
+        
+        assert_eq!(4, pools.pools.len());
+        for pool in pools.pools {
+            assert_eq!(BetStatus::created, pool.status);
+        }
 
-        // Verify query results including updated total amount
-        assert_eq!(Uint128::from(1u128), Uint128::from(pools.pools.len() as u128));
-        let pool = &pools.pools[0];
-        assert_eq!(Uint128::zero(), pool.id);
-        assert_eq!("unibi", pool.token);
-        assert_eq!(Uint128::from(1000u128), pool.start_date);
-        assert_eq!(Uint128::from(2000u128), pool.end_date);
-        assert_eq!(Uint128::from(1500u128), pool.deadline);
-        assert_eq!(BetStatus::created, pool.status);
-        assert_eq!(Uint128::from(500000u128), pool.total_amount); // Verify the total amount is updated
+        // Test pools after some end dates
+        let query_msg = QueryMsg::GetAllPool {};
+        let current_time = Uint128::from(2300u128); // After first unibi and atom pools end
+        let res = query(deps.as_ref(), env.clone(), query_msg).unwrap();
+        let pools: AllPoolsResponse = from_binary(&res).unwrap();
+        
+        for pool in pools.pools {
+            if pool.end_date < current_time {
+                assert_eq!(BetStatus::Ended, pool.status);
+            } else {
+                assert_eq!(BetStatus::created, pool.status);
+            }
+        }
+    }
+
+    #[test]
+    fn test_query_pools_by_token() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
+        
+        setup_test_pools(&mut deps).unwrap();
+
+        // Query unibi pools
+        let query_msg = QueryMsg::GetPoolByToken { 
+            token: "unibi".to_string() 
+        };
+        let res = query(deps.as_ref(), env.clone(), query_msg).unwrap();
+        let pools: PoolsByTokenResponse = from_binary(&res).unwrap();
+        
+        assert_eq!(2, pools.pools.len());
+        for pool in pools.pools {
+            assert_eq!("unibi", pool.token);
+        }
+
+        // Query atom pools
+        let query_msg = QueryMsg::GetPoolByToken { 
+            token: "atom".to_string() 
+        };
+        let res = query(deps.as_ref(), env.clone(), query_msg).unwrap();
+        let pools: PoolsByTokenResponse = from_binary(&res).unwrap();
+        
+        assert_eq!(1, pools.pools.len());
+        assert_eq!("atom", pools.pools[0].token);
+    }
+
+    #[test]
+    fn test_query_pools_by_date() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
+        
+        setup_test_pools(&mut deps).unwrap();
+
+        // Query pools by specific deadline
+        let query_msg = QueryMsg::GetPoolByDate { 
+            date: Uint128::from(2000u128)  // Deadline for atom pool
+        };
+        let res = query(deps.as_ref(), env.clone(), query_msg).unwrap();
+        let pools: PoolsByDateResponse = from_binary(&res).unwrap();
+        
+        assert_eq!(1, pools.pools.len());
+        assert_eq!(Uint128::from(2000u128), pools.pools[0].deadline);
+        assert_eq!("atom", pools.pools[0].token);
+
+        // Query pools by another deadline
+        let query_msg = QueryMsg::GetPoolByDate { 
+            date: Uint128::from(2500u128)  // Deadline for second unibi pool
+        };
+        let res = query(deps.as_ref(), env.clone(), query_msg).unwrap();
+        let pools: PoolsByDateResponse = from_binary(&res).unwrap();
+        
+        assert_eq!(1, pools.pools.len());
+        assert_eq!(Uint128::from(2500u128), pools.pools[0].deadline);
+        assert_eq!("unibi", pools.pools[0].token);
     }
 }

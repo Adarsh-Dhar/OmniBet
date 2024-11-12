@@ -7,10 +7,13 @@ export function useTransaction() {
   const offlineSigner = useStore((state : any) => state.offlineSigner);
   const chain = Testnet(1);
   const [isLoading, setIsLoading] = useState(false)
-  const contractAddress = "nibi1j74j0c6s07nw0cnenwzz3f83hmytsz57h6te0743vnct6vmutyjs2czk3j";
+  const contractAddress = "nibi1k24aq94upevmmfetyzkkqwcvsp3l8kthp57z6pqvqtmhayscln4q2mmt64";
+  const current_time = Math.floor(new Date().getTime() / 1000).toString();
+  console.log("current_time", current_time)
 
   const createPool = async (owner: string, start_date: string, end_date: string, token: string, amount: string, deadline: string) => {
     console.log("offlineSigner", offlineSigner)
+
     const client = await NibiruTxClient.connectWithSigner(
       chain.endptTm, // RPC endpoint
       offlineSigner
@@ -51,8 +54,12 @@ export function useTransaction() {
   const getAllPools = async () => {
     const client = await NibiruQuerier.connect(chain.endptTm);
     
+    
     const queryMsg = {
-        get_all_pool: {}
+        get_all_pool: {
+          current_time: current_time
+        },
+  
     };
 
     try {
@@ -73,7 +80,8 @@ export function useTransaction() {
     
     const queryMsg = {
         get_pool_by_token: {
-            token: token
+            token: token,
+            current_time: current_time
         }
     };
 
@@ -95,7 +103,8 @@ export function useTransaction() {
     
     const queryMsg = {
         get_pool_by_date: {
-            date: date
+            date: date,
+            current_time: current_time
         }
     };
 

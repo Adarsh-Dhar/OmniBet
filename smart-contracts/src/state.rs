@@ -44,19 +44,15 @@ pub struct Prediction<'a> {
     pub prediction : Map<'a, String, BetPrediction>
 }
 
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum BetStatus {
-    created,
-    ended,
-    claimed,
+    vote,
+    claim
 }
 
-
-// Change from Item to Map
 
 pub const BET: Map<&[u8], Bet> = Map::new("bet");
 pub const BET_PREDICTION: Map<&[u8], BetPrediction> = Map::new("bet_prediction");
 pub const BETS: Map<&str, Bet> = Map::new("bets");
 pub const PRIZE_DISTRIBUTION: Item<Vec<Uint128>> = Item::new("prize_distribution");
-
-

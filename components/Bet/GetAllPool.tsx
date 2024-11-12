@@ -4,6 +4,7 @@ import { useTransaction } from "../../interaction/useTransaction";
 import { useRouter } from 'next/navigation';
 import { useBetStore } from '@/states/state';
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
 
 const GetAllPool = () => {
   const [pools, setPools] = useState<any[]>([]);
@@ -15,7 +16,7 @@ const GetAllPool = () => {
   useEffect(() => {
     const fetchPools = async () => {
       const result = await getAllPools();
-      console.log("result", result.pools[0])
+      console.log("result", result)
       if (result) {
         setPools(result.pools || []);
       }
@@ -41,16 +42,29 @@ const GetAllPool = () => {
           <Card 
             key={index}
             className="cursor-pointer transform transition-transform hover:scale-105"
-            onClick={() => handlePoolClick(pool)}
+
           >
             <CardHeader>
               <CardTitle className="text-lg">Token: {pool.token}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
+
+
                 <p>End Date: {new Date(pool.end_date * 1000).toLocaleDateString()}</p>
                 <p>Deadline: {new Date(pool.deadline * 1000).toLocaleDateString()}</p>
                 <p>Amount: {pool.total_amount / 1000000}</p>
+                <p>Status: {pool.status}</p>
+
+                <Button 
+                  className="w-full mt-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePoolClick(pool);
+                  }}
+                >
+                  Bet
+                </Button>
               </div>
             </CardContent>
           </Card>

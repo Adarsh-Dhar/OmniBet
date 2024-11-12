@@ -34,9 +34,9 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    GetAllPool {},
-    GetPoolByToken { token: String },
-    GetPoolByDate { date: Uint128 },
+    GetAllPool {current_time: Uint128},
+    GetPoolByToken { token: String, current_time: Uint128 },
+    GetPoolByDate { date: Uint128, current_time: Uint128 },
 }
 
 // Define specific response types for each query
