@@ -1,5 +1,5 @@
 use std::time::Duration;
-use cosmwasm_std::{Addr, Uint128, Timestamp, Binary, Coin};
+use cosmwasm_std::{Addr, Uint128, Timestamp, Binary, Coin, Decimal};
 use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 use crate::state::Bet;
@@ -22,12 +22,12 @@ pub enum ExecuteMsg {
     EnterBet {
         id: Uint128,
         current_date: Uint128,
-        bet: f64,
+        bet: Decimal,
     },
     ClaimBet {
         bet_id: Uint128,
         current_date: Uint128,
-        real_value: f64,
+        real_value: Decimal,
     }
 }
 

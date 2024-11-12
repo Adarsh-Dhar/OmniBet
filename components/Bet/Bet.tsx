@@ -25,7 +25,7 @@ const Bet = () => {
     console.log('Betting amount:', amount);
     console.log('Prediction:', prediction);
     console.log("pool id", poolId)
-    enterBet(poolId, amount.toString(), prediction.toString(), currentDate, userAddress);
+    enterBet(poolId, amount.toString(), prediction.toString(), currentDate,userAddress);
     
 }
 

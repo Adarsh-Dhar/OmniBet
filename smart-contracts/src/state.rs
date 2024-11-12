@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Uint128, Timestamp};
+use cosmwasm_std::{Addr, Uint128, Timestamp, Decimal};
 use schemars::JsonSchema;
 use serde::{
     Deserialize,
@@ -12,7 +12,7 @@ use cw_storage_plus::{Item, Map};
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct BetPrediction {
     pub player: Addr,
-    pub bet: f64,
+    pub bet: Decimal,
     pub bet_id : Uint128,
     pub amount : Uint128,
     pub reward : Uint128,

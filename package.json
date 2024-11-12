@@ -15,15 +15,21 @@
     "@interchain-ui/react": "^1.25.6",
     "@keplr-wallet/cosmos": "^0.12.144",
     "@nibiruchain/nibijs": "^5.0.2",
+    "@radix-ui/react-navigation-menu": "^1.2.1",
+    "@radix-ui/react-slot": "^1.1.0",
     "@testing-library/react-hooks": "^8.0.1",
     "chain-registry": "^1.69.12",
     "chart.js": "^4.4.5",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
     "cosmos-kit": "^2.21.1",
-    "lucide-react": "^0.453.0",
+    "lucide-react": "^0.456.0",
     "next": "14.2.15",
     "react": "^18",
     "react-dom": "^18",
-    "react-hot-toast": "^2.4.1"
+    "react-hot-toast": "^2.4.1",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/node": "^20",

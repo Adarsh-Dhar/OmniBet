@@ -7,7 +7,7 @@ export function useTransaction() {
   const offlineSigner = useStore((state : any) => state.offlineSigner);
   const chain = Testnet(1);
   const [isLoading, setIsLoading] = useState(false)
-  const contractAddress = "nibi169wj4wcspujv697lw4rjm6rnamaacpjfnw2k9ddwmtghrf6j02aqxetzen";
+  const contractAddress = "nibi1j74j0c6s07nw0cnenwzz3f83hmytsz57h6te0743vnct6vmutyjs2czk3j";
 
   const createPool = async (owner: string, start_date: string, end_date: string, token: string, amount: string, deadline: string) => {
     console.log("offlineSigner", offlineSigner)
@@ -114,13 +114,27 @@ export function useTransaction() {
 
   
 
-  const enterBet = async (id: string, amount: string, bet: string,current_date : string, player: string) => {
+  const enterBet = async (id: string, amount: string, bet: string,current_date : string,player: string) => {
     try {
+      if (!offlineSigner) {
+        throw new Error("Offline signer not initialized");
+      }
+
+      const accounts = await offlineSigner.getAccounts();
+      if (!accounts || accounts.length === 0) {
+        throw new Error("No accounts found in signer");
+      }
+
       console.log("offlineSigner", offlineSigner)
       const client = await NibiruTxClient.connectWithSigner(
         chain.endptTm,
         offlineSigner
       );
+
+      if (!client) {
+        throw new Error("Failed to initialize client");
+      }
+
       const executeMsg = {
         EnterBet: {
           id: id,
@@ -138,13 +152,13 @@ export function useTransaction() {
 
       const fee = "auto";
       setIsLoading(true);
-      console.log("wasmClient", client?.wasmClient)
-      const executeContract = await client?.wasmClient.execute(
+      console.log("wasmClient", client.wasmClient)
+      const executeContract = await client.wasmClient.execute(
         player,
         contractAddress,
         executeMsg,
         fee,
-        "enter_bet",
+        "enter_bet", 
         funds
       );
       console.log("executeContract", executeContract)
@@ -154,7 +168,7 @@ export function useTransaction() {
         setIsLoading(false);
       }
     } catch (err) {
-      console.error('Failed to retrieve accounts from signer:', err);
+      console.error('Transaction failed:', err);
       setIsLoading(false);
       throw err;
     }

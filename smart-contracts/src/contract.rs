@@ -1,3 +1,4 @@
+
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use {
@@ -7,7 +8,7 @@ use {
             QueryMsg,
             InstantiateMsg,
             MigrateMsg,
-
+            AllPoolsResponse
         },
         state::{
             PRIZE_DISTRIBUTION,
@@ -33,7 +34,9 @@ use {
         Timestamp,
         Addr,
         BankMsg,
-        Storage
+        Storage,
+        from_binary,
+        Decimal
     },
    
     std::time::Duration,
@@ -72,8 +75,7 @@ pub fn execute(
         ExecuteMsg::ClaimBet { bet_id,current_date,real_value } => {
             execute::execute_claim_bet(deps, env, info, bet_id, current_date,real_value)
         },
-    };
-    Ok(Response::new().add_attribute("method", "execute"))
+    }
 }
 
 pub mod execute {
@@ -96,7 +98,7 @@ pub mod execute {
             
         if bets.is_empty() {
             let mut default_bet = Bet {
-                id: Uint128::new(0),
+                id: Uint128::zero(),
                 creator: info.sender.clone(),
                 token: token.clone(),
                 start_date: start_date,
@@ -105,7 +107,7 @@ pub mod execute {
                 deadline: deadline,
                 status : BetStatus::created
             };
-            BET.save(deps.storage, &Uint128::new(0).to_be_bytes(), &default_bet)?;
+            BET.save(deps.storage, &Uint128::zero().to_be_bytes(), &default_bet)?;
             return Ok(Response::new()
                 .add_attribute("method", "execute_create_bet")
                 .add_attribute("bet_id", default_bet.id.to_string()));
@@ -126,7 +128,7 @@ pub mod execute {
         let bets_count = BET
             .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
             .count();
-        let next_id = Uint128::new((bets_count + 2) as u128);
+        let next_id = Uint128::from((bets_count + 2) as u128);
 
         let bet = Bet {
             id: next_id,
@@ -153,7 +155,7 @@ pub mod execute {
         info: MessageInfo,
         id: Uint128,
         current_date : Uint128,
-        bet: f64,
+        bet: Decimal,
         
     ) -> StdResult<Response> {
         let amount = info.funds.iter().map(|c| c.amount).sum();
@@ -201,7 +203,7 @@ pub mod execute {
         info: MessageInfo,
         player: Addr,
         bet_id: Uint128,
-        real_value: f64
+        real_value: Decimal
     ) -> StdResult<Uint128> {
         let mut bet_predictions: Vec<BetPrediction> = BET_PREDICTION
             .range(storage, None, None, cosmwasm_std::Order::Ascending)
@@ -217,7 +219,7 @@ pub mod execute {
 
         // Calculate differences and sort predictions
         let total_amount: Uint128 = bet_predictions.iter().map(|p| p.amount).sum();
-        let distributable_amount = total_amount.multiply_ratio(95u128, 100u128); // 95% of total pool
+        let distributable_amount = total_amount.multiply_ratio(Uint128::from(95u128), Uint128::from(100u128)); // 95% of total pool
 
         // Calculate and sort by difference
         bet_predictions.sort_by(|a, b| {
@@ -239,13 +241,13 @@ pub mod execute {
         for (index, mut prediction) in bet_predictions.iter_mut().enumerate() {
             // Calculate deposit portion
             let deposit_portion = prediction.amount
-                .multiply_ratio(deposit_weight, 100u128)
+                .multiply_ratio(deposit_weight, Uint128::from(100u128))
                 .multiply_ratio(distributable_amount, total_amount);
 
             // Calculate rank portion
             let rank_value = Uint128::from((max_rank - index) as u128);
             let rank_portion = rank_value
-                .multiply_ratio(rank_weight, 100u128)
+                .multiply_ratio(rank_weight, Uint128::from(100u128))
                 .multiply_ratio(distributable_amount, rank_denominator);
 
             // Total reward
@@ -269,7 +271,7 @@ pub mod execute {
         info: MessageInfo,
         id : Uint128,
         current_date : Uint128,
-        real_value : f64
+        real_value : Decimal
     ) -> StdResult<Response> {
         let player = &info.sender;
         let mut bet_struct = BET
@@ -372,5 +374,81 @@ pub mod query {
             .collect();
         
         Ok(PoolsByDateResponse { pools })
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use crate::msg::{ExecuteMsg, QueryMsg, InstantiateMsg};
+
+    #[test]
+    fn test_create_and_query_pool() {
+        let mut deps = mock_dependencies();
+        let env = mock_env();
+        
+        // Instantiate contract
+        let msg = InstantiateMsg {};
+        let info = mock_info("creator", &[]);
+        let res = instantiate(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
+        assert_eq!(Uint128::zero(), Uint128::from(res.messages.len() as u128));
+
+        // Create a pool
+        let create_msg = ExecuteMsg::CreatePool {
+            start_date: Uint128::from(1000u128),
+            end_date: Uint128::from(2000u128),
+            token: "unibi".to_string(),
+            amount: Uint128::from(1000000u128),
+            deadline: Uint128::from(1500u128)
+        };
+        
+        let info = mock_info("creator", &[]);
+        let res = execute(deps.as_mut(), env.clone(), info, create_msg).unwrap();
+        
+        // Verify pool creation attributes
+        assert_eq!(Uint128::from(2u128), Uint128::from(res.attributes.len() as u128));
+        assert_eq!("method", res.attributes[0].key);
+        assert_eq!("execute_create_bet", res.attributes[0].value);
+        assert_eq!("bet_id", res.attributes[1].key);
+        assert_eq!("0", res.attributes[1].value); // First pool should have ID 0
+
+        // Enter bet with 500000 unibi
+        let enter_msg = ExecuteMsg::EnterBet {
+            id: Uint128::zero(),
+            current_date: Uint128::from(1200u128),
+            bet: Decimal::from_ratio(15u128, 10u128)
+        };
+        
+        let funds = vec![Coin {
+            denom: "unibi".to_string(),
+            amount: Uint128::from(500000u128)
+        }];
+        let info = mock_info("nibi1q3anugqtcnzlt8kts7j0l08t67kfkg60kse08w", &funds);
+        let res = execute(deps.as_mut(), env.clone(), info, enter_msg).unwrap();
+
+        // Verify enter bet attributes
+        assert_eq!(Uint128::from(3u128), Uint128::from(res.attributes.len() as u128));
+        assert_eq!("method", res.attributes[0].key);
+        assert_eq!("execute_enter_bet", res.attributes[0].value);
+        assert_eq!("amount", res.attributes[2].key);
+        assert_eq!("500000", res.attributes[2].value);
+
+        // Query all pools
+        let query_msg = QueryMsg::GetAllPool {};
+        let res = query(deps.as_ref(), env, query_msg).unwrap();
+        let pools: AllPoolsResponse = from_binary(&res).unwrap();
+
+        // Verify query results including updated total amount
+        assert_eq!(Uint128::from(1u128), Uint128::from(pools.pools.len() as u128));
+        let pool = &pools.pools[0];
+        assert_eq!(Uint128::zero(), pool.id);
+        assert_eq!("unibi", pool.token);
+        assert_eq!(Uint128::from(1000u128), pool.start_date);
+        assert_eq!(Uint128::from(2000u128), pool.end_date);
+        assert_eq!(Uint128::from(1500u128), pool.deadline);
+        assert_eq!(BetStatus::created, pool.status);
+        assert_eq!(Uint128::from(500000u128), pool.total_amount); // Verify the total amount is updated
     }
 }
