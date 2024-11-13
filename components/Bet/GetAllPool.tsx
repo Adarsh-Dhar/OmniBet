@@ -2,11 +2,12 @@
 import { useEffect, useState } from "react";
 import { useTransaction } from "../../interaction/useTransaction";
 import { useRouter } from 'next/navigation';
-import { useBetStore } from '@/states/state';
+import { useBetStore, useStore } from '@/states/state';
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import axios from "axios";
 import { tokenIdMap } from "../Common/tokenMap";
+
 
 const GetAllPool = () => {
   const [pools, setPools] = useState<any[]>([]);
@@ -14,7 +15,8 @@ const GetAllPool = () => {
   const router = useRouter();
   const changeToken = useBetStore((token : any) => token.changeToken)
   const changePoolId = useBetStore((poolId : any) => poolId.changePoolId)
-  
+  const claimBet = useTransaction().claimBet;
+  const userAddress = useStore((state : any) => state.address)
 
   useEffect(() => {
     const fetchPools = async () => {
@@ -49,7 +51,13 @@ const GetAllPool = () => {
           date : pool.end_date
         }
       });
-      console.log("response", response)
+      console.log("response", response.data.price)
+      const real_value = response.data.price;
+      const bet_id = pool.id;
+      const current_date = Math.floor(new Date().getTime() / 1000).toString();
+      console.log("current date", current_date)
+      const tx = claimBet(bet_id,userAddress,current_date,real_value)
+      console.log("tx", tx)
     }
   };
 

@@ -7,7 +7,7 @@ export function useTransaction() {
   const offlineSigner = useStore((state : any) => state.offlineSigner);
   const chain = Testnet(1);
   const [isLoading, setIsLoading] = useState(false)
-  const contractAddress = "nibi1489ny890qjscmef5xhkhnthfq56f4pdjdp4jnt4quajtqpa0504sqnspnl";
+  const contractAddress = "nibi1p7u7plp568d87fq48npqny9v5dxk5e4g6az6vxmzajc8clcmgh9scymz47";
   const current_time = Math.floor(new Date().getTime() / 1000).toString();
   console.log("current_time", current_time)
 
@@ -191,7 +191,7 @@ export function useTransaction() {
       offlineSigner
     );
     const executeMsg = {
-      claim_bet: {
+      ClaimBet: {
         bet_id: betId,
         current_date: currentDate,
         real_value: realValue
