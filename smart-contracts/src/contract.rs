@@ -334,18 +334,19 @@ pub mod execute {
 
             let bet_prediction = calculate_reward(deps.storage, info.clone(), player.clone(), bet_id, real_value)?;
 
-        //     let claim_msg = BankMsg::Send {
-        //         to_address: player.to_string(),
-        //         amount: vec![Coin {
-        //             denom: "unibi".to_string(),
-        //             amount: reward_amount,
-        //         }]
-        //     };
+            let claim_msg = BankMsg::Send {
+                to_address: player.to_string(),
+                amount: vec![Coin {
+                    denom: "unibi".to_string(),
+                    amount: bet_prediction,
+                }]
+            };
 
 
         
         // BET.save(deps.storage, &id.to_be_bytes(), &bet_struct)?;
         Ok(Response::new()
+        .add_message(claim_msg)
         .add_attribute("method", "execute_claim_bet")
         .add_attribute("reward", bet_prediction.to_string()))
     }

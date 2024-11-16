@@ -7,7 +7,7 @@ export function useTransaction() {
   const offlineSigner = useStore((state : any) => state.offlineSigner);
   const chain = Testnet(1);
   const [isLoading, setIsLoading] = useState(false)
-  const contractAddress = "nibi1qx3hw4relp7mp8x3h84xjkcp7h85l0jkrv8y4cnv49mtu3wl8f8s6ne8a0";
+  const contractAddress = "nibi10h5rcqtv7hzey92wx0tvvvyypc3ee6l9vcfywvzpkl2sylajallqdpzd2r";
   const current_time = Math.floor(new Date().getTime() / 1000).toString();
   console.log("current_time", current_time)
 
