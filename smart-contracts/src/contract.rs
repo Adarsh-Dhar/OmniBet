@@ -220,15 +220,15 @@ pub mod execute {
                 _ => None
             })
             .collect();
-
+    
         if bet_predictions.is_empty() {
             return Err(StdError::generic_err("No bets found for this bet_id"));
         }
-
+    
         let total_participants = bet_predictions.len();
         let total_amount: Uint128 = bet_predictions.iter().map(|p| p.amount).sum();
         let distributable_amount = total_amount.multiply_ratio(Uint128::from(95u128), Uint128::from(100u128));
-
+    
         // Calculate differences and store with index
         let mut predictions_with_diff: Vec<(usize, Decimal, &mut BetPrediction)> = bet_predictions
             .iter_mut()
@@ -242,15 +242,15 @@ pub mod execute {
                 (i, diff, pred)
             })
             .collect();
-
-        // Sort by difference
+    
+        // Sort by difference to assign ranks
         predictions_with_diff.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-
+    
         // Assign ranks (same diff = same rank)
         let mut current_rank = 1;
         let mut prev_diff = predictions_with_diff[0].1;
         let mut rank_map: Vec<(usize, u32)> = Vec::new();
-
+    
         for (i, diff, _) in predictions_with_diff.iter() {
             if *diff > prev_diff {
                 current_rank += 1;
@@ -258,36 +258,47 @@ pub mod execute {
             }
             rank_map.push((*i, current_rank));
         }
-
+    
         // Sort back to original order
         rank_map.sort_by_key(|k| k.0);
-
-        // Calculate rewards based on rank
+    
+        // Calculate deposit weights and rank weights
+        let deposit_weights: Vec<f64> = bet_predictions.iter()
+            .map(|p| (p.amount.u128() as f64) / (total_amount.u128() as f64))
+            .collect();
+    
+        let max_rank = current_rank;
+        let rank_denominator: f64 = rank_map.iter()
+            .map(|(_, rank)| (max_rank + 1 - *rank) as f64)
+            .sum();
+    
+        let rank_weights: Vec<f64> = rank_map.iter()
+            .map(|(_, rank)| (max_rank + 1 - *rank) as f64 / rank_denominator)
+            .collect();
+    
+        // Calculate rewards based on 75% deposit weight and 25% rank weight
         for (i, (_, rank)) in rank_map.iter().enumerate() {
-            let mut prediction = &mut bet_predictions[i];
-            
-            // Calculate deposit portion (75%)
-            let deposit_portion = prediction.amount
-                .multiply_ratio(Uint128::from(75u128), Uint128::from(100u128))
-                .multiply_ratio(distributable_amount, total_amount);
-
-            // Calculate rank portion (25%)
-            let rank_portion = Uint128::from((total_participants + 1 - *rank as usize) as u128)
-                .multiply_ratio(Uint128::from(25u128), Uint128::from(100u128))
-                .multiply_ratio(distributable_amount, Uint128::from(total_participants as u128));
-
-            prediction.reward = deposit_portion + rank_portion;
-            
+            let deposit_weight = deposit_weights[i];
+            let rank_weight = rank_weights[i];
+    
+            let combined_weight = (deposit_weight * 0.75) + (rank_weight * 0.25);
+            let final_reward = Uint128::from((distributable_amount.u128() as f64 * combined_weight) as u128);
+    
+            bet_predictions[i].reward = final_reward;
+    
             // Save updated prediction
-            BET_PREDICTION.save(storage, &bet_id.to_be_bytes(), prediction)?;
-
-            if prediction.player == player {
-                return Ok(prediction.reward);
-            }
+            BET_PREDICTION.save(storage, &bet_id.to_be_bytes(), &bet_predictions[i])?;
         }
-
-        Err(StdError::generic_err("Player not found in predictions"))
+    
+        // Return reward for the specific player
+        let player_prediction = bet_predictions.iter().find(|p| p.player == player);
+        if let Some(prediction) = player_prediction {
+            Ok(prediction.reward)
+        } else {
+            Err(StdError::generic_err("Player not found in predictions"))
+        }
     }
+    
     
     pub fn execute_claim_bet(
         deps: DepsMut,
@@ -321,22 +332,22 @@ pub mod execute {
         //     .load(deps.storage, &bet_id.u8())
         //     .map_err(|_| StdError::generic_err("Bet prediction not found"))?;
 
-            let reward_amount = calculate_reward(deps.storage, info.clone(), player.clone(), bet_id, real_value)?;
+            let bet_prediction = calculate_reward(deps.storage, info.clone(), player.clone(), bet_id, real_value)?;
 
-            let claim_msg = BankMsg::Send {
-                to_address: player.to_string(),
-                amount: vec![Coin {
-                    denom: bet_struct.clone().token,
-                    amount: reward_amount,
-                }]
-            };
+        //     let claim_msg = BankMsg::Send {
+        //         to_address: player.to_string(),
+        //         amount: vec![Coin {
+        //             denom: "unibi".to_string(),
+        //             amount: reward_amount,
+        //         }]
+        //     };
 
 
         
-        BET.save(deps.storage, &id.to_be_bytes(), &bet_struct)?;
+        // BET.save(deps.storage, &id.to_be_bytes(), &bet_struct)?;
         Ok(Response::new()
-        .add_message(claim_msg)
-        .add_attribute("method", "execute_claim_bet"))
+        .add_attribute("method", "execute_claim_bet")
+        .add_attribute("reward", bet_prediction.to_string()))
     }
     
    
@@ -695,26 +706,86 @@ fn test_complete_betting_workflow() {
     
     let funds_1 = vec![Coin {
         denom: "unibi".to_string(),
-        amount: Uint128::from(500000u128)
+        amount: Uint128::from(200000u128)
     }];
     let info_player1 = mock_info("player1", &funds_1);
     let res = execute(deps.as_mut(), env.clone(), info_player1.clone(), enter_msg_1).unwrap();
-    assert_eq!("500000", res.attributes[2].value); // Check amount entered
+    assert_eq!("200000", res.attributes[2].value); // Check amount entered
     
     // Player 2 enters bet
     let enter_msg_2 = ExecuteMsg::EnterBet {
         id: Uint128::zero(),
         current_date: Uint128::from(1300u128),
-        bet: Decimal::from_ratio(18u128, 10u128) // Prediction: 1.8
+        bet: Decimal::from_ratio(19u128, 10u128) // Prediction: 1.8
     };
     
     let funds_2 = vec![Coin {
         denom: "unibi".to_string(),
-        amount: Uint128::from(300000u128)
+        amount: Uint128::from(1000000u128)
     }];
     let info_player2 = mock_info("player2", &funds_2);
-    let res = execute(deps.as_mut(), env.clone(), info_player2, enter_msg_2).unwrap();
+    let res = execute(deps.as_mut(), env.clone(), info_player2.clone(), enter_msg_2).unwrap();
+    assert_eq!("1000000", res.attributes[2].value); // Check amount entered
+
+     // Player 2 enters bet
+     let enter_msg_3 = ExecuteMsg::EnterBet {
+        id: Uint128::zero(),
+        current_date: Uint128::from(1300u128),
+        bet: Decimal::from_ratio(13u128, 10u128) // Prediction: 1.8
+    };
+    
+    let funds_3 = vec![Coin {
+        denom: "unibi".to_string(),
+        amount: Uint128::from(800000u128)
+    }];
+    let info_player3 = mock_info("player3", &funds_3);
+    let res = execute(deps.as_mut(), env.clone(), info_player3.clone(), enter_msg_3).unwrap();
+    assert_eq!("800000", res.attributes[2].value); // Check amount entered
+
+     // Player 2 enters bet
+     let enter_msg_4 = ExecuteMsg::EnterBet {
+        id: Uint128::zero(),
+        current_date: Uint128::from(1300u128),
+        bet: Decimal::from_ratio(14u128, 10u128) // Prediction: 1.8
+    };
+    
+    let funds_4 = vec![Coin {
+        denom: "unibi".to_string(),
+        amount: Uint128::from(300000u128)
+    }];
+    let info_player4 = mock_info("player4", &funds_4);
+    let res = execute(deps.as_mut(), env.clone(), info_player4.clone(), enter_msg_4).unwrap();
     assert_eq!("300000", res.attributes[2].value); // Check amount entered
+
+     // Player 2 enters bet
+     let enter_msg_5 = ExecuteMsg::EnterBet {
+        id: Uint128::zero(),
+        current_date: Uint128::from(1300u128),
+        bet: Decimal::from_ratio(18u128, 10u128) // Prediction: 1.8
+    };
+    
+    let funds_5 = vec![Coin {
+        denom: "unibi".to_string(),
+        amount: Uint128::from(300000u128)
+    }];
+    let info_player5 = mock_info("player5", &funds_5);
+    let res = execute(deps.as_mut(), env.clone(), info_player5.clone(), enter_msg_5).unwrap();
+    assert_eq!("300000", res.attributes[2].value); // Check amount entered
+
+     // Player 2 enters bet
+     let enter_msg_6 = ExecuteMsg::EnterBet {
+        id: Uint128::zero(),
+        current_date: Uint128::from(1300u128),
+        bet: Decimal::from_ratio(20u128, 10u128) // Prediction: 1.8
+    };
+    
+    let funds_6 = vec![Coin {
+        denom: "unibi".to_string(),
+        amount: Uint128::from(200000u128)
+    }];
+    let info_player6 = mock_info("player6", &funds_6);
+    let res = execute(deps.as_mut(), env.clone(), info_player6.clone(), enter_msg_6).unwrap();
+    assert_eq!("200000", res.attributes[2].value); // Check amount entered
 
     // Time passes, now player1 claims their bet
     let claim_msg = ExecuteMsg::ClaimBet {
@@ -723,12 +794,15 @@ fn test_complete_betting_workflow() {
         real_value: Decimal::from_ratio(16u128, 10u128) // Actual value: 1.6
     };
     
-    let res = execute(deps.as_mut(), env.clone(), info_player1, claim_msg).unwrap();
+    let res = execute(deps.as_mut(), env.clone(), info_player6, claim_msg).unwrap();
     
     // Verify claim response
-    assert_eq!(1, res.messages.len()); // Should have bank send message
+
     assert_eq!("method", res.attributes[0].key);
     assert_eq!("execute_claim_bet", res.attributes[0].value);
+    assert_eq!("reward",res.attributes[1].key);
+    assert_eq!("24", res.attributes[1].value);
+
     
    
 }

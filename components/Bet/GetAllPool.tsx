@@ -56,7 +56,7 @@ const GetAllPool = () => {
       const bet_id = pool.id;
       const current_date = Math.floor(new Date().getTime() / 1000).toString();
       console.log("current date", current_date)
-      const tx = claimBet(bet_id,userAddress,current_date,"3202")
+      const tx = claimBet(bet_id,userAddress,current_date,"88046.12")
       console.log("tx", tx)
     }
   };
