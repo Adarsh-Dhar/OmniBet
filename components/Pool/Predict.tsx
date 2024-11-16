@@ -2,15 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import ChainList from '../Common/ChainList';
-import handler from '@/scripts/oracle';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/states/state';
 import axios from 'axios';
 import { tokenIdMap } from '../Common/tokenMap';
 
 const Predict = () => {
-  const [primaryToken, setPrimaryToken] = useState(null);
-  const [referenceToken, setReferenceToken] = useState(null);
   const router = useRouter();
   
   const tokenSelected = useStore((token : any) => token.tokenSelected)

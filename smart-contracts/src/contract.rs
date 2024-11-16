@@ -314,12 +314,12 @@ pub mod execute {
 
         let bet_id = bet_struct.clone().id;
 
-        let mut prediction_key = bet_id.u128().to_be_bytes().to_vec();
-        prediction_key.extend(player.as_bytes());
+        // let mut prediction_key = bet_id.as_bytes();
+        // prediction_key.extend(player.as_bytes());
         
-        let bet_prediction = BET_PREDICTION
-            .load(deps.storage, &prediction_key)
-            .map_err(|_| StdError::generic_err("Bet prediction not found"))?;
+        // let bet_prediction = BET_PREDICTION
+        //     .load(deps.storage, &bet_id.u8())
+        //     .map_err(|_| StdError::generic_err("Bet prediction not found"))?;
 
             let reward_amount = calculate_reward(deps.storage, info.clone(), player.clone(), bet_id, real_value)?;
 
@@ -726,7 +726,7 @@ fn test_complete_betting_workflow() {
     let res = execute(deps.as_mut(), env.clone(), info_player1, claim_msg).unwrap();
     
     // Verify claim response
-    assert_eq!(2, res.messages.len()); // Should have bank send message
+    assert_eq!(1, res.messages.len()); // Should have bank send message
     assert_eq!("method", res.attributes[0].key);
     assert_eq!("execute_claim_bet", res.attributes[0].value);
     

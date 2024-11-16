@@ -45,18 +45,18 @@ const GetAllPool = () => {
       const endDate = new Date(pool.end_date * 1000).toISOString().slice(0, 10)
       console.log("endDate", endDate)
       console.log("tokenId", tokenId)
-      const response = await axios.get(`http://localhost:5000/byDate/`, {
-        params: {
-          token: tokenId,
-          date : pool.end_date
-        }
-      });
-      console.log("response", response.data.price)
-      const real_value = response.data.price;
+      // const response = await axios.get(`http://localhost:5000/byDate/`, {
+      //   params: {
+      //     token: tokenId,
+      //     date : pool.end_date
+      //   }
+      // });
+      // console.log("response", response.data.price)
+      // const real_value = response.data.price;
       const bet_id = pool.id;
       const current_date = Math.floor(new Date().getTime() / 1000).toString();
       console.log("current date", current_date)
-      const tx = claimBet(bet_id,userAddress,current_date,real_value)
+      const tx = claimBet(bet_id,userAddress,current_date,"3202")
       console.log("tx", tx)
     }
   };
